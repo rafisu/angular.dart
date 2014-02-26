@@ -28,7 +28,7 @@ class Compiler {
 
       // TODO: move to ElementBinder
       var declaredDirectiveRefs = declaredElementSelector.directives;
-      for (var j = 0; j < declaredDirectiveRefs.length; j++) {
+      for (var j = declaredElementSelector.directivePos; j < declaredDirectiveRefs.length; j++) {
         DirectiveRef directiveRef = declaredDirectiveRefs[j];
         NgAnnotation annotation = directiveRef.annotation;
         var blockFactory = null;
@@ -41,11 +41,10 @@ class Compiler {
         }
 
         if (children == NgAnnotation.TRANSCLUDE_CHILDREN) {
-          // TODO: This line could use a performance review.
-          var remainingDirectives = new ElementBinder(declaredDirectiveRefs.sublist(j + 1));
+          declaredElementSelector.directivePos = j + 1;
           blockFactory = compileTransclusion(
               domCursor, templateCursor,
-              directiveRef, remainingDirectives, directives);
+              directiveRef, declaredElementSelector, directives);
 
           // stop processing further directives since they belong to
           // transclusion

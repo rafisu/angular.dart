@@ -8,5 +8,11 @@ part of angular.core.dom;
 class ElementBinder {
   List<DirectiveRef> directives;
 
+  /**
+   * As we are iterating through the directives, we may record the position.
+   * TODO: Make this member private.
+   */
+  int directivePos = 0;
+
   ElementBinder(this.directives);
 }
