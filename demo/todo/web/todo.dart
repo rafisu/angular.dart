@@ -89,3 +89,26 @@ class TodoController {
 
   int remaining() => items.fold(0, (count, item) => count += item.done ? 0 : 1);
 }
+
+@NgComponent(
+  selector: 'todo-li',
+  publishAs: 'ctrl',
+  template: """
+    <style>
+    .done {
+      color: gray;
+      text-decoration: line-through;
+    }
+    </style>
+    <li ng-class="ctrl.cssClass">
+      <label class="checkbox">
+        <input type="checkbox" ng-model="ctrl.item.done"> {{ctrl.item.text}}
+      </label>
+    </li>"""
+)
+class TodoLi {
+  @NgTwoWay('item')
+  Item item;
+
+  String get cssClass => item.done ? 'done' : '';
+}

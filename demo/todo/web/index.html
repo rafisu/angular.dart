@@ -22,11 +22,14 @@
 
 
         <ul class="well unstyled">
+            <todo-li ng-repeat="item in todo.items" item="item"></todo-li>
+            <!--
             <li ng-repeat="item in todo.items" ng-class="todo.classFor(item)">
                 <label class="checkbox">
                     <input type="checkbox" ng-model="item.done"> {{item.text}}
                 </label>
             </li>
+            -->
         </ul>
 
         <form class="form-inline" onsubmit="return false;">
