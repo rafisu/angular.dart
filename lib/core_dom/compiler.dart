@@ -9,7 +9,7 @@ class Compiler {
   Compiler(this._perf, this._parser, this._expando);
 
   _compileBlock(NodeCursor domCursor, NodeCursor templateCursor,
-                List<DirectiveRef> useExistingDirectiveRefs,
+                ElementBinder useExistingElementBinder,
                 DirectiveMap directives) {
     if (domCursor.nodeList().length == 0) return null;
 
@@ -17,15 +17,17 @@ class Compiler {
     var cursorAlreadyAdvanced;
 
     do {
-      var declaredDirectiveRefs = useExistingDirectiveRefs == null
+      var declaredElementSelector = useExistingElementBinder == null
           ?  directives.selector(domCursor.nodeList()[0])
-          : useExistingDirectiveRefs;
+          : useExistingElementBinder;
       var children = NgAnnotation.COMPILE_CHILDREN;
       var childDirectivePositions = null;
       List<DirectiveRef> usableDirectiveRefs = null;
 
       cursorAlreadyAdvanced = false;
 
+      // TODO: move to ElementBinder
+      var declaredDirectiveRefs = declaredElementSelector.directives;
       for (var j = 0; j < declaredDirectiveRefs.length; j++) {
         DirectiveRef directiveRef = declaredDirectiveRefs[j];
         NgAnnotation annotation = directiveRef.annotation;
@@ -39,7 +41,8 @@ class Compiler {
         }
 
         if (children == NgAnnotation.TRANSCLUDE_CHILDREN) {
-          var remainingDirectives = declaredDirectiveRefs.sublist(j + 1);
+          // TODO: This line could use a performance review.
+          var remainingDirectives = new ElementBinder(declaredDirectiveRefs.sublist(j + 1));
           blockFactory = compileTransclusion(
               domCursor, templateCursor,
               directiveRef, remainingDirectives, directives);
@@ -81,7 +84,7 @@ class Compiler {
   BlockFactory compileTransclusion(
                       NodeCursor domCursor, NodeCursor templateCursor,
                       DirectiveRef directiveRef,
-                      List<DirectiveRef> transcludedDirectiveRefs,
+                      ElementBinder transcludedElementBinder,
                       DirectiveMap directives) {
     var anchorName = directiveRef.annotation.selector + (directiveRef.value != null ? '=' + directiveRef.value : '');
     var blockFactory;
@@ -90,7 +93,7 @@ class Compiler {
     var transcludeCursor = templateCursor.replaceWithAnchor(anchorName);
     var domCursorIndex = domCursor.index;
     var directivePositions =
-        _compileBlock(domCursor, transcludeCursor, transcludedDirectiveRefs, directives);
+        _compileBlock(domCursor, transcludeCursor, transcludedElementBinder, directives);
     if (directivePositions == null) directivePositions = [];
 
     blockFactory = new BlockFactory(transcludeCursor.elements, directivePositions, _perf, _expando);

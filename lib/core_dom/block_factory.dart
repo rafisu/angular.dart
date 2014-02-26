@@ -26,7 +26,7 @@ class BoundBlockFactory {
  * [Compiler] as a result of compiling a template.
  */
 class BlockFactory {
-  final List directivePositions;
+  final List<List<DirectiveRef>> directivePositions;
   final List<dom.Node> templateElements;
   final Profiler _perf;
   final Expando _expando;

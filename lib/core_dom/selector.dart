@@ -26,7 +26,7 @@ part of angular.core.dom;
  *
  *
  */
-typedef List<DirectiveRef> DirectiveSelector(dom.Node node);
+typedef ElementBinder DirectiveSelector(dom.Node node);
 
 class _Directive {
   final Type type;
@@ -348,7 +348,8 @@ class DirectiveSelectorFactory {
         }
 
         directiveRefs.sort(_priorityComparator);
-        return directiveRefs;
+
+        return new ElementBinder(directiveRefs);
       };
   }
 

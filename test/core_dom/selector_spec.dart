@@ -209,11 +209,11 @@ class DirectiveInfosMatcher extends Matcher {
     return description;
   }
 
-  bool matches(directiveRefs, matchState) {
-    var pass = expected.length == directiveRefs.length;
+  bool matches(ElementBinder binder, matchState) {
+    var pass = expected.length == binder.directives.length;
     if (pass) {
       for (var i = 0, ii = expected.length; i < ii; i++) {
-        DirectiveRef directiveRef = directiveRefs[i];
+        DirectiveRef directiveRef = binder.directives[i];
         var expectedMap = expected[i];
 
         pass = pass &&
