@@ -220,20 +220,20 @@ class DirectiveInfosMatcher extends Matcher {
 
 
   bool matches(ElementBinder binder, matchState) {
-    var pass = expected.length == binder.directives.length;
+    var pass = expected.length == binder.decorators.length;
     if (pass) {
       for (var i = 0, ii = expected.length; i < ii; i++) {
-        DirectiveRef directiveRef = binder.directives[i];
+        DirectiveRef directiveRef = binder.decorators[i];
         var expectedMap = expected[i];
 
         pass = pass && _refMatches(directiveRef, expectedMap);
       }
     }
     if (pass && expectedTemplate != null) {
-      pass = pass && _refMatches(binder.templateDirective, expectedTemplate);
+      pass = pass && _refMatches(binder.template, expectedTemplate);
     }
     if (pass && expectedComponent != null) {
-      pass = pass && _refMatches(binder.componentDirective, expectedComponent);
+      pass = pass && _refMatches(binder.component, expectedComponent);
     }
     return pass;
   }

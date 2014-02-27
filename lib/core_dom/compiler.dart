@@ -17,7 +17,7 @@ class Compiler {
     var cursorAlreadyAdvanced;
 
     do {
-      var declaredElementSelector = useExistingElementBinder == null
+      ElementBinder declaredElementSelector = useExistingElementBinder == null
           ?  directives.selector(domCursor.nodeList()[0])
           : useExistingElementBinder;
 
@@ -30,8 +30,8 @@ class Compiler {
 
       // TODO: move to ElementBinder
 
-      if (declaredElementSelector.templateDirective != null && !declaredElementSelector.skipTemplate) {
-        DirectiveRef directiveRef = declaredElementSelector.templateDirective;
+      if (declaredElementSelector.template != null && !declaredElementSelector.skipTemplate) {
+        DirectiveRef directiveRef = declaredElementSelector.template;
 
         createMappings(directiveRef);
         if (usableDirectiveRefs == null) usableDirectiveRefs = [];
@@ -42,7 +42,7 @@ class Compiler {
             domCursor, templateCursor,
             directiveRef, declaredElementSelector, directives);
       } else {
-        var declaredDirectiveRefs = declaredElementSelector.directivesAndComponents;
+        var declaredDirectiveRefs = declaredElementSelector.decoratorsAndComponents;
         for (var j = 0; j < declaredDirectiveRefs.length; j++) {
           DirectiveRef directiveRef = declaredDirectiveRefs[j];
           NgAnnotation annotation = directiveRef.annotation;

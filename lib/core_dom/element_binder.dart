@@ -6,25 +6,22 @@ part of angular.core.dom;
  */
 
 class ElementBinder {
-  List<DirectiveRef> directives = [];
+  List<DirectiveRef> decorators = [];
 
   /**
-   * As we are iterating through the directives, we may record the position.
    * TODO: Make this member private.
    */
   bool skipTemplate = false;
 
-  DirectiveRef templateDirective;
+  DirectiveRef template;
 
-  DirectiveRef componentDirective;
+  DirectiveRef component;
 
-  List<DirectiveRef> get directivesAndComponents {
-    if (componentDirective != null) {
-      return new List.from(directives)..add(componentDirective);
+  // TODO: This won't be part of the public API.
+  List<DirectiveRef> get decoratorsAndComponents {
+    if (component != null) {
+      return new List.from(decorators)..add(component);
     }
-    return directives;
+    return decorators;
   }
-
-//  ElementBinder() {
-//  };
 }
