@@ -20,17 +20,24 @@ class Compiler {
       var declaredElementSelector = useExistingElementBinder == null
           ?  directives.selector(domCursor.nodeList()[0])
           : useExistingElementBinder;
-      var children = NgAnnotation.COMPILE_CHILDREN;
+
       var childDirectivePositions = null;
       List<DirectiveRef> usableDirectiveRefs = null;
 
       cursorAlreadyAdvanced = false;
+
+      var children = NgAnnotation.COMPILE_CHILDREN;
 
       // TODO: move to ElementBinder
       var declaredDirectiveRefs = declaredElementSelector.directives;
       for (var j = declaredElementSelector.directivePos; j < declaredDirectiveRefs.length; j++) {
         DirectiveRef directiveRef = declaredDirectiveRefs[j];
         NgAnnotation annotation = directiveRef.annotation;
+
+        createMappings(directiveRef);
+        if (usableDirectiveRefs == null) usableDirectiveRefs = [];
+        usableDirectiveRefs.add(directiveRef);
+
         var blockFactory = null;
 
         // The first non-"compile_children" directive wins. Since directives are
@@ -50,10 +57,9 @@ class Compiler {
           // transclusion
           j = declaredDirectiveRefs.length;
         }
-        if (usableDirectiveRefs == null) usableDirectiveRefs = [];
+
         directiveRef.blockFactory = blockFactory;
-        createMappings(directiveRef);
-        usableDirectiveRefs.add(directiveRef);
+
       }
 
       if (children == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
