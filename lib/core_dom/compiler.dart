@@ -30,46 +30,43 @@ class Compiler {
 
       // TODO: move to ElementBinder
       var declaredDirectiveRefs = declaredElementSelector.directives;
-      for (var j = declaredElementSelector.directivePos; j < declaredDirectiveRefs.length; j++) {
-        DirectiveRef directiveRef = declaredDirectiveRefs[j];
-        NgAnnotation annotation = directiveRef.annotation;
+      if (declaredElementSelector.templateDirective != null && !declaredElementSelector.skipTemplate) {
+        DirectiveRef directiveRef = declaredElementSelector.templateDirective;
 
         createMappings(directiveRef);
         if (usableDirectiveRefs == null) usableDirectiveRefs = [];
         usableDirectiveRefs.add(directiveRef);
 
-        var blockFactory = null;
+        declaredElementSelector.skipTemplate = true;
+        directiveRef.blockFactory = compileTransclusion(
+            domCursor, templateCursor,
+            directiveRef, declaredElementSelector, directives);
+      } else {
+        for (var j = 0; j < declaredDirectiveRefs.length; j++) {
+          DirectiveRef directiveRef = declaredDirectiveRefs[j];
+          NgAnnotation annotation = directiveRef.annotation;
 
-        // The first non-"compile_children" directive wins. Since directives are
-        // sorted, TRANSCLUDE_CHILDREN wins if any directive has TRANSCLUDE_CHILDREN
-        if (annotation.children != children &&
-            children == NgAnnotation.COMPILE_CHILDREN) {
-          children = annotation.children;
+          createMappings(directiveRef);
+          if (usableDirectiveRefs == null) usableDirectiveRefs = [];
+          usableDirectiveRefs.add(directiveRef);
+
+          // The first non-"compile_children" directive wins. Since directives are
+          // sorted, TRANSCLUDE_CHILDREN wins if any directive has TRANSCLUDE_CHILDREN
+          if (annotation.children != children &&
+              children == NgAnnotation.COMPILE_CHILDREN) {
+            children = annotation.children;
+          }
         }
 
-        if (children == NgAnnotation.TRANSCLUDE_CHILDREN) {
-          declaredElementSelector.directivePos = j + 1;
-          blockFactory = compileTransclusion(
-              domCursor, templateCursor,
-              directiveRef, declaredElementSelector, directives);
+        if (children == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
+          templateCursor.descend();
 
-          // stop processing further directives since they belong to
-          // transclusion
-          j = declaredDirectiveRefs.length;
+          childDirectivePositions =
+              _compileBlock(domCursor, templateCursor, null, directives);
+
+          domCursor.ascend();
+          templateCursor.ascend();
         }
-
-        directiveRef.blockFactory = blockFactory;
-
-      }
-
-      if (children == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
-        templateCursor.descend();
-
-        childDirectivePositions =
-            _compileBlock(domCursor, templateCursor, null, directives);
-
-        domCursor.ascend();
-        templateCursor.ascend();
       }
 
       if (childDirectivePositions != null || usableDirectiveRefs != null) {

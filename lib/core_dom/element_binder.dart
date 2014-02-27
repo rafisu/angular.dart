@@ -6,13 +6,16 @@ part of angular.core.dom;
  */
 
 class ElementBinder {
-  List<DirectiveRef> directives;
+  List<DirectiveRef> directives = [];
 
   /**
    * As we are iterating through the directives, we may record the position.
    * TODO: Make this member private.
    */
-  int directivePos = 0;
+  bool skipTemplate = false;
 
-  ElementBinder(this.directives);
+  DirectiveRef templateDirective;
+
+//  ElementBinder() {
+//  };
 }
