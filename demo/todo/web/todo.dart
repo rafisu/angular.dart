@@ -100,13 +100,14 @@ class TodoController {
       text-decoration: line-through;
     }
     </style>
-    <li ng-class="ctrl.cssClass">
+    <li bind-class="ctrl.cssClass">
       <label class="checkbox">
         <input type="checkbox" ng-model="ctrl.item.done"> {{ctrl.item.text}}
       </label>
     </li>"""
 )
 class TodoLi {
+  //@NgProperty('item') // The new syntax.
   @NgTwoWay('item')
   Item item;
 

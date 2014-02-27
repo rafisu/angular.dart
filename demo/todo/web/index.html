@@ -22,8 +22,13 @@
 
 
         <ul class="well unstyled">
+            <li><b>Attribute binding</b></li>
+            <todo-li ng-repeat="item in todo.items" bind-item="item"></todo-li>
+            <li><b>Interpolation</b></li>
+
             <todo-li ng-repeat="item in todo.items" item="item"></todo-li>
-            <!--
+
+            <!-- The non-component method
             <li ng-repeat="item in todo.items" ng-class="todo.classFor(item)">
                 <label class="checkbox">
                     <input type="checkbox" ng-model="item.done"> {{item.text}}
