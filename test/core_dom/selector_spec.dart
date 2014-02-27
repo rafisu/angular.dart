@@ -155,9 +155,10 @@ main() {
       toEqualsDirectiveInfos(
         [
           { "selector": "[attribute]", "value": "", "element": element },
-          { "selector": "[ignore-children]", "value": "", "element": element },
-          { "selector": "component", "value": null, "element": element }
+          { "selector": "[ignore-children]", "value": "", "element": element }
+
         ],
+        component: { "selector": "component", "value": null, "element": element },
         template: {"selector": "[structural]", "value": "", "element": element}));
     });
 
@@ -203,8 +204,9 @@ main() {
 class DirectiveInfosMatcher extends Matcher {
   List<Map> expected;
   Map expectedTemplate;
+  Map expectedComponent;
 
-  DirectiveInfosMatcher(this.expected, {this.expectedTemplate});
+  DirectiveInfosMatcher(this.expected, {this.expectedTemplate, this.expectedComponent});
 
   Description describe(Description description) {
     description.add(expected.toString());
@@ -230,11 +232,14 @@ class DirectiveInfosMatcher extends Matcher {
     if (pass && expectedTemplate != null) {
       pass = pass && _refMatches(binder.templateDirective, expectedTemplate);
     }
+    if (pass && expectedComponent != null) {
+      pass = pass && _refMatches(binder.componentDirective, expectedComponent);
+    }
     return pass;
   }
 }
 
-Matcher toEqualsDirectiveInfos(List<Map> directives, {Map template}) {
-  return new DirectiveInfosMatcher(directives, expectedTemplate: template);
+Matcher toEqualsDirectiveInfos(List<Map> directives, {Map template, Map component}) {
+  return new DirectiveInfosMatcher(directives, expectedTemplate: template, expectedComponent: component);
 }
 

@@ -16,6 +16,15 @@ class ElementBinder {
 
   DirectiveRef templateDirective;
 
+  DirectiveRef componentDirective;
+
+  List<DirectiveRef> get directivesAndComponents {
+    if (componentDirective != null) {
+      return new List.from(directives)..add(componentDirective);
+    }
+    return directives;
+  }
+
 //  ElementBinder() {
 //  };
 }

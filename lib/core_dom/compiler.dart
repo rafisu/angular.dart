@@ -29,7 +29,7 @@ class Compiler {
       var children = NgAnnotation.COMPILE_CHILDREN;
 
       // TODO: move to ElementBinder
-      var declaredDirectiveRefs = declaredElementSelector.directives;
+
       if (declaredElementSelector.templateDirective != null && !declaredElementSelector.skipTemplate) {
         DirectiveRef directiveRef = declaredElementSelector.templateDirective;
 
@@ -42,6 +42,7 @@ class Compiler {
             domCursor, templateCursor,
             directiveRef, declaredElementSelector, directives);
       } else {
+        var declaredDirectiveRefs = declaredElementSelector.directivesAndComponents;
         for (var j = 0; j < declaredDirectiveRefs.length; j++) {
           DirectiveRef directiveRef = declaredDirectiveRefs[j];
           NgAnnotation annotation = directiveRef.annotation;

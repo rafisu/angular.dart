@@ -77,10 +77,13 @@ class _SelectorPart {
 }
 
 _addRefToBinder(ElementBinder binder, DirectiveRef ref) {
-  var children = ref.annotation.children;
+  var annotation = ref.annotation;
+  var children = annotation.children;
 
-  if (ref.annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
+  if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
     binder.templateDirective = ref;
+  } else if(annotation is NgComponent) {
+    binder.componentDirective = ref;
   } else {
     binder.directives.add(ref);
   }
@@ -359,22 +362,7 @@ class DirectiveSelectorFactory {
           break;
       }
 
-      // TODO: Can remove once we have components in the ElementBinder
-      binder.directives.sort(_priorityComparator);
-
       return binder;
     };
   }
-
-  int _directivePriority(NgAnnotation annotation) {
-    if (annotation is NgDirective) {
-      return (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) ? 2 : 1;
-    } else if (annotation is NgComponent) {
-      return 0;
-    }
-    throw "Unexpected Type: ${annotation}.";
-  }
-
-  int _priorityComparator(DirectiveRef a, DirectiveRef b) =>
-    _directivePriority(b.annotation) - _directivePriority(a.annotation);
 }
