@@ -26,8 +26,6 @@ class Compiler {
 
       cursorAlreadyAdvanced = false;
 
-      var children = NgAnnotation.COMPILE_CHILDREN;
-
       // TODO: move to ElementBinder
 
       if (declaredElementSelector.template != null && !declaredElementSelector.skipTemplate) {
@@ -50,16 +48,9 @@ class Compiler {
           createMappings(directiveRef);
           if (usableDirectiveRefs == null) usableDirectiveRefs = [];
           usableDirectiveRefs.add(directiveRef);
-
-          // The first non-"compile_children" directive wins. Since directives are
-          // sorted, TRANSCLUDE_CHILDREN wins if any directive has TRANSCLUDE_CHILDREN
-          if (annotation.children != children &&
-              children == NgAnnotation.COMPILE_CHILDREN) {
-            children = annotation.children;
-          }
         }
 
-        if (children == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
+        if (declaredElementSelector.childMode == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
           templateCursor.descend();
 
           childDirectivePositions =

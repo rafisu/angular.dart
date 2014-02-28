@@ -87,6 +87,10 @@ _addRefToBinder(ElementBinder binder, DirectiveRef ref) {
   } else {
     binder.decorators.add(ref);
   }
+
+  if (annotation.children == NgAnnotation.IGNORE_CHILDREN) {
+    binder.childMode = annotation.children;
+  }
 }
 
 _addRefs(ElementBinder binder, List<_Directive> directives, dom.Node node, [String attrValue]) {

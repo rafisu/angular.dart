@@ -17,6 +17,9 @@ class ElementBinder {
 
   DirectiveRef component;
 
+  // Can be either COMPILE_CHILDREN or IGNORE_CHILDREN
+  String childMode = NgAnnotation.COMPILE_CHILDREN;
+
   // TODO: This won't be part of the public API.
   List<DirectiveRef> get decoratorsAndComponents {
     if (component != null) {
