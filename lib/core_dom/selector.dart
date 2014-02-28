@@ -76,27 +76,9 @@ class _SelectorPart {
       : element;
 }
 
-_addRefToBinder(ElementBinder binder, DirectiveRef ref) {
-  var annotation = ref.annotation;
-  var children = annotation.children;
-
-  if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
-    binder.template = ref;
-  } else if(annotation is NgComponent) {
-    binder.component = ref;
-  } else {
-    binder.decorators.add(ref);
-  }
-
-  if (annotation.children == NgAnnotation.IGNORE_CHILDREN) {
-    binder.childMode = annotation.children;
-  }
-}
-
 _addRefs(ElementBinder binder, List<_Directive> directives, dom.Node node, [String attrValue]) {
   directives.forEach((directive) {
-    var ref = new DirectiveRef(node, directive.type, directive.annotation, attrValue);
-    _addRefToBinder(binder, ref);
+    binder.addDirective(new DirectiveRef(node, directive.type, directive.annotation, attrValue));
   });
 }
 
@@ -327,7 +309,7 @@ class DirectiveSelectorFactory {
                 // we need to pass the name to the directive by prefixing it to
                 // the value. Yes it is a bit of a hack.
                 directives[selectorRegExp.annotation].forEach((type) {
-                  _addRefToBinder(binder, new DirectiveRef(
+                  binder.addDirective(new DirectiveRef(
                       node, type, selectorRegExp.annotation, '$attrName=$value'));
                 });
               }
@@ -358,7 +340,7 @@ class DirectiveSelectorFactory {
             var selectorRegExp = textSelector[k];
             if (selectorRegExp.regexp.hasMatch(value)) {
               directives[selectorRegExp.annotation].forEach((type) {
-                _addRefToBinder(binder, new DirectiveRef(node, type,
+                binder.addDirective(new DirectiveRef(node, type,
                     selectorRegExp.annotation, value));
               });
             }

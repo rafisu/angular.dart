@@ -27,4 +27,21 @@ class ElementBinder {
     }
     return decorators;
   }
+
+  addDirective(DirectiveRef ref) {
+    var annotation = ref.annotation;
+    var children = annotation.children;
+
+    if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
+      template = ref;
+    } else if(annotation is NgComponent) {
+      component = ref;
+    } else {
+      decorators.add(ref);
+    }
+
+    if (annotation.children == NgAnnotation.IGNORE_CHILDREN) {
+      childMode = annotation.children;
+    }
+  }
 }
