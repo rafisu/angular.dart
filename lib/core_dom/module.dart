@@ -47,7 +47,7 @@ class NgCoreDomModule extends Module {
     type(HttpDefaults);
     type(HttpInterceptors);
     type(NgAnimate);
-    type(BlockCache);
+    type(ViewCache);
     type(BrowserCookies);
     type(Cookies);
     type(LocationWrapper);

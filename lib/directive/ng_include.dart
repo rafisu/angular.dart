@@ -22,33 +22,33 @@ class NgIncludeDirective {
 
   final dom.Element element;
   final Scope scope;
-  final BlockCache blockCache;
+  final ViewCache blockCache;
   final Injector injector;
   final DirectiveMap directives;
 
-  Block _previousBlock;
+  View _previousView;
   Scope _previousScope;
 
   NgIncludeDirective(this.element, this.scope, this.blockCache, this.injector, this.directives);
 
   _cleanUp() {
-    if (_previousBlock == null) return;
+    if (_previousView == null) return;
 
-    _previousBlock.remove();
+    _previousView.remove();
     _previousScope.destroy();
     element.innerHtml = '';
 
-    _previousBlock = null;
+    _previousView = null;
     _previousScope = null;
   }
 
-  _updateContent(createBlock) {
+  _updateContent(createView) {
     // create a new scope
     _previousScope = scope.createChild(new PrototypeMap(scope.context));
-    _previousBlock = createBlock(injector.createChild([new Module()
+    _previousView = createView(injector.createChild([new Module()
         ..value(Scope, _previousScope)]));
 
-    _previousBlock.elements.forEach((elm) => element.append(elm));
+    _previousView.elements.forEach((elm) => element.append(elm));
   }
 
 

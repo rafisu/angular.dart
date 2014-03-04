@@ -1,9 +1,9 @@
 part of angular.core.dom;
 
 /**
-* ElementWrapper is an interface for [Block]s and [BlockHole]s. Its purpose is
-* to allow treating [Block] and [BlockHole] under same interface so that
-* [Block]s can be added after [BlockHole].
+* ElementWrapper is an interface for [View]s and [ViewHole]s. Its purpose is
+* to allow treating [View] and [ViewHole] under same interface so that
+* [View]s can be added after [ViewHole].
 */
 abstract class ElementWrapper {
   List<dom.Node> elements;
@@ -12,21 +12,21 @@ abstract class ElementWrapper {
 }
 
 /**
- * A Block is a fundamental building block of DOM. It is a chunk of DOM which
+ * A View is a fundamental building block of DOM. It is a chunk of DOM which
  * can not be structural changed. It can only have its attributes changed.
- * A Block can have [BlockHole]s embedded in its DOM.  A [BlockHole] can
- * contain other [Block]s and it is the only way in which DOM can be changed
+ * A View can have [ViewHole]s embedded in its DOM.  A [ViewHole] can
+ * contain other [View]s and it is the only way in which DOM can be changed
  * structurally.
  *
- * A [Block] is a collection of DOM nodes and [Directive]s for those nodes.
+ * A [View] is a collection of DOM nodes and [Directive]s for those nodes.
  *
- * A [Block] is responsible for instantiating the [Directive]s and for
+ * A [View] is responsible for instantiating the [Directive]s and for
  * inserting / removing itself to/from DOM.
  *
- * A [Block] can be created from [BlockFactory].
+ * A [View] can be created from [ViewFactory].
  *
  */
-class Block implements ElementWrapper {
+class View implements ElementWrapper {
   List<dom.Node> elements;
   ElementWrapper next;
   ElementWrapper previous;
@@ -38,19 +38,19 @@ class Block implements ElementWrapper {
   List<dynamic> _directives = [];
   final NgAnimate _animate;
 
-  Block(this.elements, this._animate);
+  View(this.elements, this._animate);
 
-  Block insertAfter(ElementWrapper previousBlock) {
+  View insertAfter(ElementWrapper previousView) {
     // Update Link List.
-    next = previousBlock.next;
+    next = previousView.next;
     if (next != null) {
       next.previous = this;
     }
-    previous = previousBlock;
-    previousBlock.next = this;
+    previous = previousView;
+    previousView.next = this;
 
     // Update DOM
-    List<dom.Node> previousElements = previousBlock.elements;
+    List<dom.Node> previousElements = previousView.elements;
     dom.Node previousElement = previousElements[previousElements.length - 1];
     dom.Node insertBeforeElement = previousElement.nextNode;
     dom.Node parentElement = previousElement.parentNode;
@@ -76,7 +76,7 @@ class Block implements ElementWrapper {
     return this;
   }
 
-  Block remove() {
+  View remove() {
     bool preventDefault = false;
 
     Function removeDomElements = () {
@@ -106,8 +106,8 @@ class Block implements ElementWrapper {
     return this;
   }
 
-  Block moveAfter(ElementWrapper previousBlock) {
-    var previousElements = previousBlock.elements,
+  View moveAfter(ElementWrapper previousView) {
+    var previousElements = previousView.elements,
         previousElement = previousElements[previousElements.length - 1],
         insertBeforeElement = previousElement.nextNode,
         parentElement = previousElement.parentNode;
@@ -120,26 +120,26 @@ class Block implements ElementWrapper {
       next.previous = previous;
     }
     // Add block to list
-    next = previousBlock.next;
+    next = previousView.next;
     if (next != null) {
       next.previous = this;
     }
-    previous = previousBlock;
-    previousBlock.next = this;
+    previous = previousView;
+    previousView.next = this;
     return this;
   }
 }
 
 /**
- * A BlockHole is an instance of a hole. BlockHoles designate where child
- * [Block]s can be added in parent [Block]. BlockHoles wrap a DOM element,
+ * A ViewHole is an instance of a hole. ViewHoles designate where child
+ * [View]s can be added in parent [View]. ViewHoles wrap a DOM element,
  * and act as references which allows more blocks to be added.
  */
-class BlockHole extends ElementWrapper {
+class ViewHole extends ElementWrapper {
   List<dom.Node> elements;
   ElementWrapper previous;
   ElementWrapper next;
 
-  BlockHole(this.elements);
+  ViewHole(this.elements);
 }
 

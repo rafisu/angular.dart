@@ -58,7 +58,7 @@ part of angular.directive;
     visibility: NgDirective.DIRECT_CHILDREN_VISIBILITY)
 class NgSwitchDirective {
   Map<String, List<_Case>> cases = new Map<String, List<_Case>>();
-  List<_BlockScopePair> currentBlocks = <_BlockScopePair>[];
+  List<_ViewScopePair> currentViews = <_ViewScopePair>[];
   Function onChange;
   final Scope scope;
 
@@ -66,14 +66,14 @@ class NgSwitchDirective {
     cases['?'] = <_Case>[];
   }
 
-  addCase(String value, BlockHole anchor, BoundBlockFactory blockFactory) {
+  addCase(String value, ViewHole anchor, BoundViewFactory blockFactory) {
     cases.putIfAbsent(value, () => <_Case>[]);
     cases[value].add(new _Case(anchor, blockFactory));
   }
 
   set value(val) {
-    currentBlocks
-        ..forEach((_BlockScopePair pair) {
+    currentViews
+        ..forEach((_ViewScopePair pair) {
           pair.block.remove();
           pair.scope.destroy();
         })
@@ -84,7 +84,7 @@ class NgSwitchDirective {
         .forEach((_Case caze) {
           Scope childScope = scope.createChild(new PrototypeMap(scope.context));
           var block = caze.blockFactory(childScope)..insertAfter(caze.anchor);
-          currentBlocks.add(new _BlockScopePair(block, childScope));
+          currentViews.add(new _ViewScopePair(block, childScope));
         });
     if (onChange != null) {
       onChange();
@@ -92,16 +92,16 @@ class NgSwitchDirective {
   }
 }
 
-class _BlockScopePair {
-  final Block block;
+class _ViewScopePair {
+  final View block;
   final Scope scope;
 
-  _BlockScopePair(this.block, this.scope);
+  _ViewScopePair(this.block, this.scope);
 }
 
 class _Case {
-  final BlockHole anchor;
-  final BoundBlockFactory blockFactory;
+  final ViewHole anchor;
+  final BoundViewFactory blockFactory;
 
   _Case(this.anchor, this.blockFactory);
 }
@@ -112,8 +112,8 @@ class _Case {
     map: const {'.': '@value'})
 class NgSwitchWhenDirective {
   final NgSwitchDirective ngSwitch;
-  final BlockHole hole;
-  final BoundBlockFactory blockFactory;
+  final ViewHole hole;
+  final BoundViewFactory blockFactory;
   final Scope scope;
 
   NgSwitchWhenDirective(this.ngSwitch, this.hole, this.blockFactory, this.scope);
@@ -127,8 +127,8 @@ class NgSwitchWhenDirective {
     selector: '[ng-switch-default]')
 class NgSwitchDefaultDirective {
 
-  NgSwitchDefaultDirective(NgSwitchDirective ngSwitch, BlockHole hole,
-                           BoundBlockFactory blockFactory, Scope scope) {
+  NgSwitchDefaultDirective(NgSwitchDirective ngSwitch, ViewHole hole,
+                           BoundViewFactory blockFactory, Scope scope) {
     ngSwitch.addCase('?', hole, blockFactory);
   }
 }

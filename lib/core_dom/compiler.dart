@@ -8,7 +8,7 @@ class Compiler {
 
   Compiler(this._perf, this._parser, this._expando);
 
-  _compileBlock(NodeCursor domCursor, NodeCursor templateCursor,
+  _compileView(NodeCursor domCursor, NodeCursor templateCursor,
                 ElementBinder useExistingElementBinder,
                 DirectiveMap directives) {
     if (domCursor.nodeList().length == 0) return null;
@@ -39,7 +39,7 @@ class Compiler {
           templateCursor.descend();
 
           childDirectivePositions =
-          _compileBlock(domCursor, templateCursor, null, directives);
+          _compileView(domCursor, templateCursor, null, directives);
 
           domCursor.ascend();
           templateCursor.ascend();
@@ -62,7 +62,7 @@ class Compiler {
     return directivePositions;
   }
 
-  BlockFactory compileTransclusion(
+  ViewFactory compileTransclusion(
                       NodeCursor domCursor, NodeCursor templateCursor,
                       DirectiveRef directiveRef,
                       ElementBinder transcludedElementBinder,
@@ -74,10 +74,10 @@ class Compiler {
     var transcludeCursor = templateCursor.replaceWithAnchor(anchorName);
     var domCursorIndex = domCursor.index;
     var directivePositions =
-        _compileBlock(domCursor, transcludeCursor, transcludedElementBinder, directives);
+        _compileView(domCursor, transcludeCursor, transcludedElementBinder, directives);
     if (directivePositions == null) directivePositions = [];
 
-    blockFactory = new BlockFactory(transcludeCursor.elements, directivePositions, _perf, _expando);
+    blockFactory = new ViewFactory(transcludeCursor.elements, directivePositions, _perf, _expando);
     domCursor.index = domCursorIndex;
 
     if (domCursor.isInstance()) {
@@ -97,16 +97,16 @@ class Compiler {
     return blockFactory;
   }
 
-  BlockFactory call(List<dom.Node> elements, DirectiveMap directives) {
+  ViewFactory call(List<dom.Node> elements, DirectiveMap directives) {
     var timerId;
     assert((timerId = _perf.startTimer('ng.compile', _html(elements))) != false);
     List<dom.Node> domElements = elements;
     List<dom.Node> templateElements = cloneElements(domElements);
-    var directivePositions = _compileBlock(
+    var directivePositions = _compileView(
         new NodeCursor(domElements), new NodeCursor(templateElements),
         null, directives);
 
-    var blockFactory = new BlockFactory(templateElements,
+    var blockFactory = new ViewFactory(templateElements,
         directivePositions == null ? [] : directivePositions, _perf, _expando);
 
     assert(_perf.stopTimer(timerId) != false);

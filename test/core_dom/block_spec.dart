@@ -9,15 +9,15 @@ class Log {
 }
 
 @NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo')
-class LoggerBlockDirective {
-  LoggerBlockDirective(BlockHole hole, BlockFactory blockFactory,
-      BoundBlockFactory boundBlockFactory, Logger logger) {
+class LoggerViewDirective {
+  LoggerViewDirective(ViewHole hole, ViewFactory blockFactory,
+      BoundViewFactory boundViewFactory, Logger logger) {
     assert(hole != null);
     assert(blockFactory != null);
-    assert(boundBlockFactory != null);
+    assert(boundViewFactory != null);
 
     logger.add(hole);
-    logger.add(boundBlockFactory);
+    logger.add(boundViewFactory);
     logger.add(blockFactory);
   }
 }
@@ -60,7 +60,7 @@ class BFilter {
 
 
 main() {
-  describe('Block', () {
+  describe('View', () {
     var anchor;
     var $rootElement;
     var blockCache;
@@ -75,9 +75,9 @@ main() {
 
       beforeEach(inject((Injector injector, Profiler perf) {
         $rootElement.html('<!-- anchor -->');
-        anchor = new BlockHole($rootElement.contents().eq(0));
-        a = (new BlockFactory($('<span>A</span>a'), [], perf, expando))(injector);
-        b = (new BlockFactory($('<span>B</span>b'), [], perf, expando))(injector);
+        anchor = new ViewHole($rootElement.contents().eq(0));
+        a = (new ViewFactory($('<span>A</span>a'), [], perf, expando))(injector);
+        b = (new ViewFactory($('<span>B</span>b'), [], perf, expando))(injector);
       }));
 
 
@@ -156,37 +156,37 @@ main() {
 
           // TODO(dart): I really want to do this:
           // class Directive {
-          //   Directive(BlockHole $anchor, Logger logger) {
+          //   Directive(ViewHole $anchor, Logger logger) {
           //     logger.add($anchor);
           //   }
           // }
 
           var directiveRef = new DirectiveRef(null,
-                                              LoggerBlockDirective,
+                                              LoggerViewDirective,
                                               new NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo'),
                                               '');
-          directiveRef.blockFactory = new BlockFactory($('<b>text</b>'), [], perf, new Expando());
-          var outerBlockType = new BlockFactory(
+          directiveRef.blockFactory = new ViewFactory($('<b>text</b>'), [], perf, new Expando());
+          var outerViewType = new ViewFactory(
               $('<!--start--><!--end-->'),
               [ 0, [ directiveRef ], null],
               perf,
               new Expando());
 
-          var outterBlock = outerBlockType(injector);
-          // The LoggerBlockDirective caused a BlockHole for innerBlockType to
+          var outterView = outerViewType(injector);
+          // The LoggerViewDirective caused a ViewHole for innerViewType to
           // be created at logger[0];
-          BlockHole outterAnchor = logger[0];
-          BoundBlockFactory outterBoundBlockFactory = logger[1];
+          ViewHole outterAnchor = logger[0];
+          BoundViewFactory outterBoundViewFactory = logger[1];
 
-          outterBlock.insertAfter(anchor);
-          // outterAnchor is a BlockHole, but it has "elements" set to the 0th element
-          // of outerBlockType.  So, calling insertAfter() will insert the new
+          outterView.insertAfter(anchor);
+          // outterAnchor is a ViewHole, but it has "elements" set to the 0th element
+          // of outerViewType.  So, calling insertAfter() will insert the new
           // block after the <!--start--> element.
-          outterBoundBlockFactory(null).insertAfter(outterAnchor);
+          outterBoundViewFactory(null).insertAfter(outterAnchor);
 
           expect($rootElement.text()).toEqual('text');
 
-          outterBlock.remove();
+          outterView.remove();
 
           expect($rootElement.text()).toEqual('');
         }));

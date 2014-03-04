@@ -31,7 +31,7 @@ abstract class NgAnnotation {
   static const String COMPILE_CHILDREN = 'compile';
   /**
    * Compile the child nodes for transclusion and makes available
-   * [BoundBlockFactory], [BlockFactory] and [BlockHole] for injection.
+   * [BoundViewFactory], [ViewFactory] and [ViewHole] for injection.
    */
   static const String TRANSCLUDE_CHILDREN = 'transclude';
   /**

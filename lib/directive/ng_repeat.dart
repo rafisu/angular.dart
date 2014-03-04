@@ -3,7 +3,7 @@ part of angular.directive;
 class _Row {
   var id;
   Scope scope;
-  Block block;
+  View block;
   dom.Element startNode;
   dom.Element endNode;
   List<dom.Element> elements;
@@ -81,13 +81,13 @@ class _Row {
     selector: '[ng-repeat]',
     map: const {'.': '@expression'})
 class NgRepeatDirective extends AbstractNgRepeatDirective {
-  NgRepeatDirective(BlockHole blockHole,
-                    BoundBlockFactory boundBlockFactory,
+  NgRepeatDirective(ViewHole blockHole,
+                    BoundViewFactory boundViewFactory,
                     Scope scope,
                     Parser parser,
                     AstParser astParser,
                     FilterMap filters)
-      : super(blockHole, boundBlockFactory, scope, parser, astParser, filters);
+      : super(blockHole, boundViewFactory, scope, parser, astParser, filters);
 }
 
 /**
@@ -115,13 +115,13 @@ class NgRepeatDirective extends AbstractNgRepeatDirective {
     map: const {'.': '@expression'})
 //TODO(misko): delete me, since we can no longer do shallow digest.
 class NgShallowRepeatDirective extends AbstractNgRepeatDirective {
-  NgShallowRepeatDirective(BlockHole blockHole,
-                          BoundBlockFactory boundBlockFactory,
+  NgShallowRepeatDirective(ViewHole blockHole,
+                          BoundViewFactory boundViewFactory,
                           Scope scope,
                           Parser parser,
                           AstParser astParser,
                           FilterMap filters)
-      : super(blockHole, boundBlockFactory, scope, parser, astParser, filters)
+      : super(blockHole, boundViewFactory, scope, parser, astParser, filters)
   {
     print('DEPRECATED: [ng-shallow-repeat] use [ng-repeat]');
   }
@@ -131,8 +131,8 @@ abstract class AbstractNgRepeatDirective  {
   static RegExp _SYNTAX = new RegExp(r'^\s*(.+)\s+in\s+(.*?)\s*(\s+track\s+by\s+(.+)\s*)?(\s+lazily\s*)?$');
   static RegExp _LHS_SYNTAX = new RegExp(r'^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$');
 
-  final BlockHole _blockHole;
-  final BoundBlockFactory _boundBlockFactory;
+  final ViewHole _blockHole;
+  final BoundViewFactory _boundViewFactory;
   final Scope _scope;
   final Parser _parser;
   final AstParser _astParser;
@@ -147,7 +147,7 @@ abstract class AbstractNgRepeatDirective  {
   Watch _watch = null;
   Iterable _lastCollection;
 
-  AbstractNgRepeatDirective(this._blockHole, this._boundBlockFactory,
+  AbstractNgRepeatDirective(this._blockHole, this._boundViewFactory,
                             this._scope, this._parser, this._astParser,
                             this.filters);
 
@@ -195,8 +195,8 @@ abstract class AbstractNgRepeatDirective  {
 
   List<_Row> _computeNewRows(Iterable collection, trackById) {
     final newRowOrder = new List<_Row>(collection.length);
-    // Same as lastBlockMap but it has the current state. It will become the
-    // lastBlockMap on the next iteration.
+    // Same as lastViewMap but it has the current state. It will become the
+    // lastViewMap on the next iteration.
     final newRows = <dynamic, _Row>{};
     // locate existing items
     for (var index = 0; index < newRowOrder.length; index++) {
@@ -208,7 +208,7 @@ abstract class AbstractNgRepeatDirective  {
         newRows[trackById] = row;
         newRowOrder[index] = row;
       } else if (newRows.containsKey(trackById)) {
-        // restore lastBlockMap
+        // restore lastViewMap
         newRowOrder.forEach((row) {
           if (row != null && row.startNode != null) _rows[row.id] = row;
         });
@@ -280,7 +280,7 @@ abstract class AbstractNgRepeatDirective  {
           ..[r'$even'] = index & 1 == 0;
 
       if (row.startNode == null) {
-        var block = _boundBlockFactory(childScope);
+        var block = _boundViewFactory(childScope);
         _rows[row.id] = row
             ..block = block
             ..scope = childScope

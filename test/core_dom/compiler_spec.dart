@@ -201,8 +201,8 @@ void main() {
         var element = $(r'<div><simple></simple></div>');
 
         zone.run(() {
-          BlockFactory blockFactory = $compile(element, directives);
-          Block block = blockFactory(injector, element);
+          ViewFactory blockFactory = $compile(element, directives);
+          View block = blockFactory(injector, element);
         });
 
         microLeap();
@@ -229,8 +229,8 @@ void main() {
         var element = $(r'<div>{{name}}:<simple>{{name}}</simple></div>');
 
         zone.run(() {
-          BlockFactory blockFactory = $compile(element, directives);
-          Block block = blockFactory(injector, element);
+          ViewFactory blockFactory = $compile(element, directives);
+          View block = blockFactory(injector, element);
         });
 
         microLeap();
@@ -657,9 +657,9 @@ class LocalAttrDirective {
     selector: '[simple-transclude-in-attach]',
     visibility: NgDirective.CHILDREN_VISIBILITY, children: NgAnnotation.TRANSCLUDE_CHILDREN)
 class SimpleTranscludeInAttachAttrDirective {
-  SimpleTranscludeInAttachAttrDirective(BlockHole blockHole, BoundBlockFactory boundBlockFactory, Logger log, RootScope scope) {
+  SimpleTranscludeInAttachAttrDirective(ViewHole blockHole, BoundViewFactory boundViewFactory, Logger log, RootScope scope) {
     scope.runAsync(() {
-      var block = boundBlockFactory(scope);
+      var block = boundViewFactory(scope);
       block.insertAfter(blockHole);
       log('SimpleTransclude');
     });

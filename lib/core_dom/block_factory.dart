@@ -2,48 +2,48 @@ part of angular.core.dom;
 
 
 /**
- * BoundBlockFactory is a [BlockFactory] which does not need Injector because
+ * BoundViewFactory is a [ViewFactory] which does not need Injector because
  * it is pre-bound to an injector from the parent. This means that this
- * BoundBlockFactory can only be used from within a specific Directive such
+ * BoundViewFactory can only be used from within a specific Directive such
  * as [NgRepeat], but it can not be stored in a cache.
  *
- * The BoundBlockFactory needs [Scope] to be created.
+ * The BoundViewFactory needs [Scope] to be created.
  */
-class BoundBlockFactory {
-  BlockFactory blockFactory;
+class BoundViewFactory {
+  ViewFactory blockFactory;
 
   Injector injector;
 
-  BoundBlockFactory(this.blockFactory, this.injector);
+  BoundViewFactory(this.blockFactory, this.injector);
 
-  Block call(Scope scope) {
+  View call(Scope scope) {
     return blockFactory(injector.createChild([new Module()..value(Scope, scope)]));
   }
 }
 
 /**
- * BlockFactory is used to create new [Block]s. BlockFactory is created by the
+ * ViewFactory is used to create new [View]s. ViewFactory is created by the
  * [Compiler] as a result of compiling a template.
  */
-class BlockFactory {
+class ViewFactory {
   final List<List<DirectiveRef>> directivePositions;
   final List<dom.Node> templateElements;
   final Profiler _perf;
   final Expando _expando;
 
-  BlockFactory(this.templateElements, this.directivePositions, this._perf, this._expando);
+  ViewFactory(this.templateElements, this.directivePositions, this._perf, this._expando);
 
-  BoundBlockFactory bind(Injector injector) =>
-    new BoundBlockFactory(this, injector);
+  BoundViewFactory bind(Injector injector) =>
+    new BoundViewFactory(this, injector);
 
-  Block call(Injector injector, [List<dom.Node> elements]) {
+  View call(Injector injector, [List<dom.Node> elements]) {
     if (elements == null) {
       elements = cloneElements(templateElements);
     }
     var timerId;
     try {
       assert((timerId = _perf.startTimer('ng.block')) != false);
-      var block = new Block(elements, injector.get(NgAnimate));
+      var block = new View(elements, injector.get(NgAnimate));
       _link(block, elements, directivePositions, injector);
       return block;
     } finally {
@@ -51,7 +51,7 @@ class BlockFactory {
     }
   }
 
-  _link(Block block, List<dom.Node> nodeList, List directivePositions, Injector parentInjector) {
+  _link(View block, List<dom.Node> nodeList, List directivePositions, Injector parentInjector) {
     var preRenderedIndexOffset = 0;
     var directiveDefsByName = {};
 
@@ -92,7 +92,7 @@ class BlockFactory {
     }
   }
 
-  Injector _instantiateDirectives(Block block, Injector parentInjector,
+  Injector _instantiateDirectives(View block, Injector parentInjector,
                                   dom.Node node, List<DirectiveRef> directiveRefs,
                                   Parser parser) {
     var timerId;
@@ -109,10 +109,10 @@ class BlockFactory {
       var nodeModule = new Module();
       var blockHoleFactory = (_) => null;
       var blockFactory = (_) => null;
-      var boundBlockFactory = (_) => null;
+      var boundViewFactory = (_) => null;
       var nodesAttrsDirectives = null;
 
-      nodeModule.value(Block, block);
+      nodeModule.value(View, block);
       nodeModule.value(dom.Element, node);
       nodeModule.value(dom.Node, node);
       nodeModule.value(NodeAttrs, nodeAttrs);
@@ -153,7 +153,7 @@ class BlockFactory {
           nodeModule.factory(ref.type, (Injector injector) {
             Compiler compiler = injector.get(Compiler);
             Scope scope = injector.get(Scope);
-            BlockCache blockCache = injector.get(BlockCache);
+            ViewCache blockCache = injector.get(ViewCache);
             Http http = injector.get(Http);
             TemplateCache templateCache = injector.get(TemplateCache);
             DirectiveMap directives = injector.get(DirectiveMap);
@@ -174,15 +174,15 @@ class BlockFactory {
         if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
           // Currently, transclude is only supported for NgDirective.
           assert(annotation is NgDirective);
-          blockHoleFactory = (_) => new BlockHole([node]);
+          blockHoleFactory = (_) => new ViewHole([node]);
           blockFactory = (_) => ref.blockFactory;
-          boundBlockFactory = (Injector injector) => ref.blockFactory.bind(injector);
+          boundViewFactory = (Injector injector) => ref.blockFactory.bind(injector);
         }
       });
       nodeModule
-          ..factory(BlockHole, blockHoleFactory)
-          ..factory(BlockFactory, blockFactory)
-          ..factory(BoundBlockFactory, boundBlockFactory)
+          ..factory(ViewHole, blockHoleFactory)
+          ..factory(ViewFactory, blockFactory)
+          ..factory(BoundViewFactory, boundViewFactory)
           ..factory(ElementProbe, (_) => probe);
       nodeInjector = parentInjector.createChild([nodeModule]);
       probe = _expando[node] = new ElementProbe(
@@ -271,15 +271,15 @@ class BlockFactory {
 }
 
 /**
- * BlockCache is used to cache the compilation of templates into [Block]s.
+ * ViewCache is used to cache the compilation of templates into [View]s.
  * It can be used synchronously if HTML is known or asynchronously if the
  * template HTML needs to be looked up from the URL.
  */
 @NgInjectableService()
-class BlockCache {
+class ViewCache {
   // _blockFactoryCache is unbounded
-  Cache<String, BlockFactory> _blockFactoryCache =
-      new LruCache<String, BlockFactory>(capacity: 0);
+  Cache<String, ViewFactory> _blockFactoryCache =
+      new LruCache<String, ViewFactory>(capacity: 0);
 
   Http $http;
 
@@ -289,10 +289,10 @@ class BlockCache {
 
   dom.NodeTreeSanitizer treeSanitizer;
 
-  BlockCache(this.$http, this.$templateCache, this.compiler, this.treeSanitizer);
+  ViewCache(this.$http, this.$templateCache, this.compiler, this.treeSanitizer);
 
-  BlockFactory fromHtml(String html, DirectiveMap directives) {
-    BlockFactory blockFactory = _blockFactoryCache.get(html);
+  ViewFactory fromHtml(String html, DirectiveMap directives) {
+    ViewFactory blockFactory = _blockFactoryCache.get(html);
     if (blockFactory == null) {
       var div = new dom.Element.tag('div');
       div.setInnerHtml(html, treeSanitizer: treeSanitizer);
@@ -302,7 +302,7 @@ class BlockCache {
     return blockFactory;
   }
 
-  async.Future<BlockFactory> fromUrl(String url, DirectiveMap directives) {
+  async.Future<ViewFactory> fromUrl(String url, DirectiveMap directives) {
     return $http.getString(url, cache: $templateCache).then(
         (html) => fromHtml(html, directives));
   }
@@ -330,7 +330,7 @@ class _ComponentFactory {
   _ComponentFactory(this.element, this.type, this.component, this.treeSanitizer,
                     this._expando);
 
-  dynamic call(Injector injector, Compiler compiler, Scope scope, BlockCache $blockCache, Http $http, TemplateCache $templateCache, DirectiveMap directives) {
+  dynamic call(Injector injector, Compiler compiler, Scope scope, ViewCache $blockCache, Http $http, TemplateCache $templateCache, DirectiveMap directives) {
     this.compiler = compiler;
     shadowDom = element.createShadowRoot();
     shadowDom.applyAuthorStyles = component.applyAuthorStyles;
@@ -363,9 +363,9 @@ class _ComponentFactory {
         shadowDom.setInnerHtml('<style>${filteredCssList.join('')}</style>', treeSanitizer: treeSanitizer);
       }
       if (blockFuture != null) {
-        return blockFuture.then((BlockFactory blockFactory) {
+        return blockFuture.then((ViewFactory blockFactory) {
           if (!shadowScope.isAttached) return shadowDom;
-          return attachBlockToShadowDom(blockFactory);
+          return attachViewToShadowDom(blockFactory);
         });
       }
       return shadowDom;
@@ -380,7 +380,7 @@ class _ComponentFactory {
     return controller;
   }
 
-  attachBlockToShadowDom(BlockFactory blockFactory) {
+  attachViewToShadowDom(ViewFactory blockFactory) {
     var block = blockFactory(shadowInjector);
     shadowDom.nodes.addAll(block.elements);
     return shadowDom;
