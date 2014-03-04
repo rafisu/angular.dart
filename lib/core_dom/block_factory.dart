@@ -174,13 +174,13 @@ class ViewFactory {
         if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
           // Currently, transclude is only supported for NgDirective.
           assert(annotation is NgDirective);
-          blockHoleFactory = (_) => new ViewHole([node]);
+          blockHoleFactory = (_) => new ViewPort([node]);
           blockFactory = (_) => ref.blockFactory;
           boundViewFactory = (Injector injector) => ref.blockFactory.bind(injector);
         }
       });
       nodeModule
-          ..factory(ViewHole, blockHoleFactory)
+          ..factory(ViewPort, blockHoleFactory)
           ..factory(ViewFactory, blockFactory)
           ..factory(BoundViewFactory, boundViewFactory)
           ..factory(ElementProbe, (_) => probe);

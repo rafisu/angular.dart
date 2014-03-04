@@ -66,7 +66,7 @@ class NgSwitchDirective {
     cases['?'] = <_Case>[];
   }
 
-  addCase(String value, ViewHole anchor, BoundViewFactory blockFactory) {
+  addCase(String value, ViewPort anchor, BoundViewFactory blockFactory) {
     cases.putIfAbsent(value, () => <_Case>[]);
     cases[value].add(new _Case(anchor, blockFactory));
   }
@@ -100,7 +100,7 @@ class _ViewScopePair {
 }
 
 class _Case {
-  final ViewHole anchor;
+  final ViewPort anchor;
   final BoundViewFactory blockFactory;
 
   _Case(this.anchor, this.blockFactory);
@@ -112,7 +112,7 @@ class _Case {
     map: const {'.': '@value'})
 class NgSwitchWhenDirective {
   final NgSwitchDirective ngSwitch;
-  final ViewHole hole;
+  final ViewPort hole;
   final BoundViewFactory blockFactory;
   final Scope scope;
 
@@ -127,7 +127,7 @@ class NgSwitchWhenDirective {
     selector: '[ng-switch-default]')
 class NgSwitchDefaultDirective {
 
-  NgSwitchDefaultDirective(NgSwitchDirective ngSwitch, ViewHole hole,
+  NgSwitchDefaultDirective(NgSwitchDirective ngSwitch, ViewPort hole,
                            BoundViewFactory blockFactory, Scope scope) {
     ngSwitch.addCase('?', hole, blockFactory);
   }

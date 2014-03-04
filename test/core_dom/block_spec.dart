@@ -10,7 +10,7 @@ class Log {
 
 @NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo')
 class LoggerViewDirective {
-  LoggerViewDirective(ViewHole hole, ViewFactory blockFactory,
+  LoggerViewDirective(ViewPort hole, ViewFactory blockFactory,
       BoundViewFactory boundViewFactory, Logger logger) {
     assert(hole != null);
     assert(blockFactory != null);
@@ -75,7 +75,7 @@ main() {
 
       beforeEach(inject((Injector injector, Profiler perf) {
         $rootElement.html('<!-- anchor -->');
-        anchor = new ViewHole($rootElement.contents().eq(0));
+        anchor = new ViewPort($rootElement.contents().eq(0));
         a = (new ViewFactory($('<span>A</span>a'), [], perf, expando))(injector);
         b = (new ViewFactory($('<span>B</span>b'), [], perf, expando))(injector);
       }));
@@ -156,7 +156,7 @@ main() {
 
           // TODO(dart): I really want to do this:
           // class Directive {
-          //   Directive(ViewHole $anchor, Logger logger) {
+          //   Directive(ViewPort $anchor, Logger logger) {
           //     logger.add($anchor);
           //   }
           // }
@@ -173,13 +173,13 @@ main() {
               new Expando());
 
           var outterView = outerViewType(injector);
-          // The LoggerViewDirective caused a ViewHole for innerViewType to
+          // The LoggerViewDirective caused a ViewPort for innerViewType to
           // be created at logger[0];
-          ViewHole outterAnchor = logger[0];
+          ViewPort outterAnchor = logger[0];
           BoundViewFactory outterBoundViewFactory = logger[1];
 
           outterView.insertAfter(anchor);
-          // outterAnchor is a ViewHole, but it has "elements" set to the 0th element
+          // outterAnchor is a ViewPort, but it has "elements" set to the 0th element
           // of outerViewType.  So, calling insertAfter() will insert the new
           // block after the <!--start--> element.
           outterBoundViewFactory(null).insertAfter(outterAnchor);

@@ -81,7 +81,7 @@ class _Row {
     selector: '[ng-repeat]',
     map: const {'.': '@expression'})
 class NgRepeatDirective extends AbstractNgRepeatDirective {
-  NgRepeatDirective(ViewHole blockHole,
+  NgRepeatDirective(ViewPort blockHole,
                     BoundViewFactory boundViewFactory,
                     Scope scope,
                     Parser parser,
@@ -115,7 +115,7 @@ class NgRepeatDirective extends AbstractNgRepeatDirective {
     map: const {'.': '@expression'})
 //TODO(misko): delete me, since we can no longer do shallow digest.
 class NgShallowRepeatDirective extends AbstractNgRepeatDirective {
-  NgShallowRepeatDirective(ViewHole blockHole,
+  NgShallowRepeatDirective(ViewPort blockHole,
                           BoundViewFactory boundViewFactory,
                           Scope scope,
                           Parser parser,
@@ -131,7 +131,7 @@ abstract class AbstractNgRepeatDirective  {
   static RegExp _SYNTAX = new RegExp(r'^\s*(.+)\s+in\s+(.*?)\s*(\s+track\s+by\s+(.+)\s*)?(\s+lazily\s*)?$');
   static RegExp _LHS_SYNTAX = new RegExp(r'^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$');
 
-  final ViewHole _blockHole;
+  final ViewPort _blockHole;
   final BoundViewFactory _boundViewFactory;
   final Scope _scope;
   final Parser _parser;

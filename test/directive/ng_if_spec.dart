@@ -7,7 +7,7 @@ import '../_specs.dart';
     children: NgAnnotation.TRANSCLUDE_CHILDREN)
 class ChildController {
   ChildController(BoundViewFactory boundViewFactory,
-                  ViewHole blockHole,
+                  ViewPort blockHole,
                   Scope scope) {
     scope.context['setBy'] = 'childController';
     boundViewFactory(scope).insertAfter(blockHole);

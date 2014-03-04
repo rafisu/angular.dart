@@ -1,9 +1,9 @@
 part of angular.core.dom;
 
 /**
-* ElementWrapper is an interface for [View]s and [ViewHole]s. Its purpose is
-* to allow treating [View] and [ViewHole] under same interface so that
-* [View]s can be added after [ViewHole].
+* ElementWrapper is an interface for [View]s and [ViewPort]s. Its purpose is
+* to allow treating [View] and [ViewPort] under same interface so that
+* [View]s can be added after [ViewPort].
 */
 abstract class ElementWrapper {
   List<dom.Node> elements;
@@ -14,7 +14,7 @@ abstract class ElementWrapper {
 /**
  * A View is a fundamental building block of DOM. It is a chunk of DOM which
  * can not be structural changed. It can only have its attributes changed.
- * A View can have [ViewHole]s embedded in its DOM.  A [ViewHole] can
+ * A View can have [ViewPort]s embedded in its DOM.  A [ViewPort] can
  * contain other [View]s and it is the only way in which DOM can be changed
  * structurally.
  *
@@ -131,15 +131,15 @@ class View implements ElementWrapper {
 }
 
 /**
- * A ViewHole is an instance of a hole. ViewHoles designate where child
- * [View]s can be added in parent [View]. ViewHoles wrap a DOM element,
+ * A ViewPort is an instance of a hole. ViewPorts designate where child
+ * [View]s can be added in parent [View]. ViewPorts wrap a DOM element,
  * and act as references which allows more blocks to be added.
  */
-class ViewHole extends ElementWrapper {
+class ViewPort extends ElementWrapper {
   List<dom.Node> elements;
   ElementWrapper previous;
   ElementWrapper next;
 
-  ViewHole(this.elements);
+  ViewPort(this.elements);
 }
 

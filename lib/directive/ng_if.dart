@@ -5,7 +5,7 @@ part of angular.directive;
  */
 abstract class _NgUnlessIfAttrDirectiveBase {
   final BoundViewFactory _boundViewFactory;
-  final ViewHole _blockHole;
+  final ViewPort _blockHole;
   final Scope _scope;
 
   View _block;
@@ -95,7 +95,7 @@ abstract class _NgUnlessIfAttrDirectiveBase {
     map: const {'.': '=>condition'})
 class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
   NgIfDirective(BoundViewFactory boundViewFactory,
-                ViewHole blockHole,
+                ViewPort blockHole,
                 Scope scope): super(boundViewFactory, blockHole, scope);
 
   set condition(value) {
@@ -157,7 +157,7 @@ class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
 class NgUnlessDirective extends _NgUnlessIfAttrDirectiveBase {
 
   NgUnlessDirective(BoundViewFactory boundViewFactory,
-                    ViewHole blockHole,
+                    ViewPort blockHole,
                     Scope scope): super(boundViewFactory, blockHole, scope);
 
   set condition(value) {
