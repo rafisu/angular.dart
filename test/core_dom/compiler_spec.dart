@@ -657,10 +657,10 @@ class LocalAttrDirective {
     selector: '[simple-transclude-in-attach]',
     visibility: NgDirective.CHILDREN_VISIBILITY, children: NgAnnotation.TRANSCLUDE_CHILDREN)
 class SimpleTranscludeInAttachAttrDirective {
-  SimpleTranscludeInAttachAttrDirective(ViewPort viewHole, BoundViewFactory boundViewFactory, Logger log, RootScope scope) {
+  SimpleTranscludeInAttachAttrDirective(ViewPort viewPort, BoundViewFactory boundViewFactory, Logger log, RootScope scope) {
     scope.runAsync(() {
       var view = boundViewFactory(scope);
-      view.insertAfter(viewHole);
+      view.insertAfter(viewPort);
       log('SimpleTransclude');
     });
   }

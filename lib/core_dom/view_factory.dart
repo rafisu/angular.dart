@@ -107,7 +107,7 @@ class ViewFactory {
     try {
       if (directiveRefs == null || directiveRefs.length == 0) return parentInjector;
       var nodeModule = new Module();
-      var viewHoleFactory = (_) => null;
+      var viewPortFactory = (_) => null;
       var viewFactory = (_) => null;
       var boundViewFactory = (_) => null;
       var nodesAttrsDirectives = null;
@@ -174,13 +174,13 @@ class ViewFactory {
         if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
           // Currently, transclude is only supported for NgDirective.
           assert(annotation is NgDirective);
-          viewHoleFactory = (_) => new ViewPort([node]);
+          viewPortFactory = (_) => new ViewPort([node]);
           viewFactory = (_) => ref.viewFactory;
           boundViewFactory = (Injector injector) => ref.viewFactory.bind(injector);
         }
       });
       nodeModule
-          ..factory(ViewPort, viewHoleFactory)
+          ..factory(ViewPort, viewPortFactory)
           ..factory(ViewFactory, viewFactory)
           ..factory(BoundViewFactory, boundViewFactory)
           ..factory(ElementProbe, (_) => probe);

@@ -81,13 +81,13 @@ class _Row {
     selector: '[ng-repeat]',
     map: const {'.': '@expression'})
 class NgRepeatDirective extends AbstractNgRepeatDirective {
-  NgRepeatDirective(ViewPort viewHole,
+  NgRepeatDirective(ViewPort viewPort,
                     BoundViewFactory boundViewFactory,
                     Scope scope,
                     Parser parser,
                     AstParser astParser,
                     FilterMap filters)
-      : super(viewHole, boundViewFactory, scope, parser, astParser, filters);
+      : super(viewPort, boundViewFactory, scope, parser, astParser, filters);
 }
 
 /**
@@ -115,13 +115,13 @@ class NgRepeatDirective extends AbstractNgRepeatDirective {
     map: const {'.': '@expression'})
 //TODO(misko): delete me, since we can no longer do shallow digest.
 class NgShallowRepeatDirective extends AbstractNgRepeatDirective {
-  NgShallowRepeatDirective(ViewPort viewHole,
+  NgShallowRepeatDirective(ViewPort viewPort,
                           BoundViewFactory boundViewFactory,
                           Scope scope,
                           Parser parser,
                           AstParser astParser,
                           FilterMap filters)
-      : super(viewHole, boundViewFactory, scope, parser, astParser, filters)
+      : super(viewPort, boundViewFactory, scope, parser, astParser, filters)
   {
     print('DEPRECATED: [ng-shallow-repeat] use [ng-repeat]');
   }
@@ -131,7 +131,7 @@ abstract class AbstractNgRepeatDirective  {
   static RegExp _SYNTAX = new RegExp(r'^\s*(.+)\s+in\s+(.*?)\s*(\s+track\s+by\s+(.+)\s*)?(\s+lazily\s*)?$');
   static RegExp _LHS_SYNTAX = new RegExp(r'^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$');
 
-  final ViewPort _viewHole;
+  final ViewPort _viewPort;
   final BoundViewFactory _boundViewFactory;
   final Scope _scope;
   final Parser _parser;
@@ -147,7 +147,7 @@ abstract class AbstractNgRepeatDirective  {
   Watch _watch = null;
   Iterable _lastCollection;
 
-  AbstractNgRepeatDirective(this._viewHole, this._boundViewFactory,
+  AbstractNgRepeatDirective(this._viewPort, this._boundViewFactory,
                             this._scope, this._parser, this._astParser,
                             this.filters);
 
@@ -232,12 +232,12 @@ abstract class AbstractNgRepeatDirective  {
   }
 
   _onCollectionChange(Iterable collection) {
-    dom.Node previousNode = _viewHole.elements[0]; // current position of the node
+    dom.Node previousNode = _viewPort.elements[0]; // current position of the node
     dom.Node nextNode;
     Scope childScope;
     Map childContext;
     Scope trackById;
-    ElementWrapper cursor = _viewHole;
+    ElementWrapper cursor = _viewPort;
 
     List<_Row> newRowOrder = _computeNewRows(collection, trackById);
 

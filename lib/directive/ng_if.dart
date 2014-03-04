@@ -5,7 +5,7 @@ part of angular.directive;
  */
 abstract class _NgUnlessIfAttrDirectiveBase {
   final BoundViewFactory _boundViewFactory;
-  final ViewPort _viewHole;
+  final ViewPort _viewPort;
   final Scope _scope;
 
   View _view;
@@ -18,7 +18,7 @@ abstract class _NgUnlessIfAttrDirectiveBase {
    */
   Scope _childScope;
 
-  _NgUnlessIfAttrDirectiveBase(this._boundViewFactory, this._viewHole,
+  _NgUnlessIfAttrDirectiveBase(this._boundViewFactory, this._viewPort,
                                this._scope);
 
   // Override in subclass.
@@ -30,7 +30,7 @@ abstract class _NgUnlessIfAttrDirectiveBase {
       _view = _boundViewFactory(_childScope);
       var insertView = _view;
       _scope.rootScope.domWrite(() {
-        insertView.insertAfter(_viewHole);
+        insertView.insertAfter(_viewPort);
      });
     }
   }
@@ -95,8 +95,8 @@ abstract class _NgUnlessIfAttrDirectiveBase {
     map: const {'.': '=>condition'})
 class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
   NgIfDirective(BoundViewFactory boundViewFactory,
-                ViewPort viewHole,
-                Scope scope): super(boundViewFactory, viewHole, scope);
+                ViewPort viewPort,
+                Scope scope): super(boundViewFactory, viewPort, scope);
 
   set condition(value) {
     if (toBool(value)) {
@@ -157,8 +157,8 @@ class NgIfDirective extends _NgUnlessIfAttrDirectiveBase {
 class NgUnlessDirective extends _NgUnlessIfAttrDirectiveBase {
 
   NgUnlessDirective(BoundViewFactory boundViewFactory,
-                    ViewPort viewHole,
-                    Scope scope): super(boundViewFactory, viewHole, scope);
+                    ViewPort viewPort,
+                    Scope scope): super(boundViewFactory, viewPort, scope);
 
   set condition(value) {
     if (!toBool(value)) {
