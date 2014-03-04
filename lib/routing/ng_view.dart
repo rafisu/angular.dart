@@ -9,7 +9,7 @@ part of angular.routing;
  * [NgViewDirective] can work with [NgViewDirective] to define nested views
  * for hierarchical routes. For example:
  *
- *     void initRoutes(Router router, ViewFactory view) {
+ *     void initRoutes(Router router, RouteViewFactory view) {
  *       router.root
  *         ..addRoute(
  *             name: 'library',
