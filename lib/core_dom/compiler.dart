@@ -27,39 +27,26 @@ class Compiler {
       cursorAlreadyAdvanced = false;
 
       // TODO: move to ElementBinder
-
-      if (declaredElementSelector.template != null && !declaredElementSelector.skipTemplate) {
+      var compileTransclusionCallback = () {
         DirectiveRef directiveRef = declaredElementSelector.template;
-
-        createMappings(directiveRef);
-        if (usableDirectiveRefs == null) usableDirectiveRefs = [];
-        usableDirectiveRefs.add(directiveRef);
-
-        declaredElementSelector.skipTemplate = true;
         directiveRef.blockFactory = compileTransclusion(
             domCursor, templateCursor,
             directiveRef, declaredElementSelector, directives);
-      } else {
-        var declaredDirectiveRefs = declaredElementSelector.decoratorsAndComponents;
-        for (var j = 0; j < declaredDirectiveRefs.length; j++) {
-          DirectiveRef directiveRef = declaredDirectiveRefs[j];
-          NgAnnotation annotation = directiveRef.annotation;
+      };
 
-          createMappings(directiveRef);
-          if (usableDirectiveRefs == null) usableDirectiveRefs = [];
-          usableDirectiveRefs.add(directiveRef);
-        }
-
+      var compileChildrenCallback = () {
         if (declaredElementSelector.childMode == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
           templateCursor.descend();
 
           childDirectivePositions =
-              _compileBlock(domCursor, templateCursor, null, directives);
+          _compileBlock(domCursor, templateCursor, null, directives);
 
           domCursor.ascend();
           templateCursor.ascend();
         }
-      }
+      };
+
+      usableDirectiveRefs = declaredElementSelector.bind(null, null, compileTransclusionCallback, compileChildrenCallback);
 
       if (childDirectivePositions != null || usableDirectiveRefs != null) {
         if (directivePositions == null) directivePositions = [];
@@ -126,108 +113,7 @@ class Compiler {
     return blockFactory;
   }
 
-  static RegExp _MAPPING = new RegExp(r'^(\@|=\>\!|\=\>|\<\=\>|\&)\s*(.*)$');
 
-  createMappings(DirectiveRef ref) {
-    NgAnnotation annotation = ref.annotation;
-    if (annotation.map != null) annotation.map.forEach((attrName, mapping) {
-      Match match = _MAPPING.firstMatch(mapping);
-      if (match == null) {
-        throw "Unknown mapping '$mapping' for attribute '$attrName'.";
-      }
-      var mode = match[1];
-      var dstPath = match[2];
 
-      String dstExpression = dstPath.isEmpty ? attrName : dstPath;
-      Expression dstPathFn = _parser(dstExpression);
-      if (!dstPathFn.isAssignable) {
-        throw "Expression '$dstPath' is not assignable in mapping '$mapping' for attribute '$attrName'.";
-      }
-      ApplyMapping mappingFn;
-      switch (mode) {
-        case '@':
-          mappingFn = (NodeAttrs attrs, Scope scope, Object controller, FilterMap filters, notify()) {
-            attrs.observe(attrName, (value) {
-              dstPathFn.assign(controller, value);
-              notify();
-            });
-          };
-          break;
-        case '<=>':
-          mappingFn = (NodeAttrs attrs, Scope scope, Object controller, FilterMap filters, notify()) {
-            if (attrs[attrName] == null) return notify();
-            String expression = attrs[attrName];
-            Expression expressionFn = _parser(expression);
-            var blockOutbound = false;
-            var blockInbound = false;
-            scope.watch(
-                expression,
-                (inboundValue, _) {
-                  if (!blockInbound) {
-                    blockOutbound = true;
-                    scope.rootScope.runAsync(() => blockOutbound = false);
-                    var value = dstPathFn.assign(controller, inboundValue);
-                    notify();
-                    return value;
-                  }
-                },
-                filters: filters
-            );
-            if (expressionFn.isAssignable) {
-              scope.watch(
-                  dstExpression,
-                  (outboundValue, _) {
-                    if (!blockOutbound) {
-                      blockInbound = true;
-                      scope.rootScope.runAsync(() => blockInbound = false);
-                      expressionFn.assign(scope.context, outboundValue);
-                      notify();
-                    }
-                  },
-                  context: controller,
-                  filters: filters
-              );
-            }
-          };
-          break;
-        case '=>':
-          mappingFn = (NodeAttrs attrs, Scope scope, Object controller, FilterMap filters, notify()) {
-            if (attrs[attrName] == null) return notify();
-            Expression attrExprFn = _parser(attrs[attrName]);
-            var shadowValue = null;
-            scope.watch(attrs[attrName],
-                    (v, _) {
-                      dstPathFn.assign(controller, shadowValue = v);
-                      notify();
-                    },
-                    filters: filters);
-          };
-          break;
-        case '=>!':
-          mappingFn = (NodeAttrs attrs, Scope scope, Object controller, FilterMap filters, notify()) {
-            if (attrs[attrName] == null) return notify();
-            Expression attrExprFn = _parser(attrs[attrName]);
-            var watch;
-            watch = scope.watch(
-                attrs[attrName],
-                (value, _) {
-                  if (dstPathFn.assign(controller, value) != null) {
-                    watch.remove();
-                  }
-                },
-                filters: filters);
-            notify();
-          };
-          break;
-        case '&':
-          mappingFn = (NodeAttrs attrs, Scope scope, Object dst, FilterMap filters, notify()) {
-            dstPathFn.assign(dst, _parser(attrs[attrName]).bind(scope.context, ScopeLocals.wrapper));
-            notify();
-          };
-          break;
-      }
-      ref.mappings.add(mappingFn);
-    });
-  }
 }
 

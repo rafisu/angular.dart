@@ -243,6 +243,10 @@ List<_SelectorPart> _splitCss(String selector, Type type) {
  */
 @NgInjectableService()
 class DirectiveSelectorFactory {
+  ElementBinderFactory _binderFactory;
+
+  DirectiveSelectorFactory(this._binderFactory);
+
   DirectiveSelector selector(DirectiveMap directives) {
 
     var elementSelector = new _ElementSelector('');
@@ -270,7 +274,7 @@ class DirectiveSelectorFactory {
 
     return (dom.Node node) {
       //var directiveRefs = <DirectiveRef>[];
-      ElementBinder binder = new ElementBinder();
+      ElementBinder binder = _binderFactory.binder();
       List<_ElementSelector> partialSelection;
       var classes = <String, bool>{};
       var attrs = <String, String>{};

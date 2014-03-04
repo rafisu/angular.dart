@@ -54,6 +54,7 @@ class NgCoreDomModule extends Module {
     type(FieldMetadataExtractor);
     type(DirectiveMap);
     type(DirectiveSelectorFactory);
+    type(ElementBinderFactory);
   }
 }
 
