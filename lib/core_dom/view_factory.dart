@@ -10,14 +10,14 @@ part of angular.core.dom;
  * The BoundViewFactory needs [Scope] to be created.
  */
 class BoundViewFactory {
-  ViewFactory blockFactory;
+  ViewFactory viewFactory;
 
   Injector injector;
 
-  BoundViewFactory(this.blockFactory, this.injector);
+  BoundViewFactory(this.viewFactory, this.injector);
 
   View call(Scope scope) {
-    return blockFactory(injector.createChild([new Module()..value(Scope, scope)]));
+    return viewFactory(injector.createChild([new Module()..value(Scope, scope)]));
   }
 }
 
@@ -42,16 +42,16 @@ class ViewFactory {
     }
     var timerId;
     try {
-      assert((timerId = _perf.startTimer('ng.block')) != false);
-      var block = new View(elements, injector.get(NgAnimate));
-      _link(block, elements, directivePositions, injector);
-      return block;
+      assert((timerId = _perf.startTimer('ng.view')) != false);
+      var view = new View(elements, injector.get(NgAnimate));
+      _link(view, elements, directivePositions, injector);
+      return view;
     } finally {
       assert(_perf.stopTimer(timerId) != false);
     }
   }
 
-  _link(View block, List<dom.Node> nodeList, List directivePositions, Injector parentInjector) {
+  _link(View view, List<dom.Node> nodeList, List directivePositions, Injector parentInjector) {
     var preRenderedIndexOffset = 0;
     var directiveDefsByName = {};
 
@@ -65,7 +65,7 @@ class ViewFactory {
 
       var timerId;
       try {
-        assert((timerId = _perf.startTimer('ng.block.link', _html(node))) != false);
+        assert((timerId = _perf.startTimer('ng.view.link', _html(node))) != false);
         // if node isn't attached to the DOM, create a parent for it.
         var parentNode = node.parentNode;
         var fakeParent = false;
@@ -75,11 +75,11 @@ class ViewFactory {
           parentNode.append(node);
         }
 
-        var childInjector = _instantiateDirectives(block, parentInjector, node,
+        var childInjector = _instantiateDirectives(view, parentInjector, node,
             directiveRefs, parentInjector.get(Parser));
 
         if (childDirectivePositions != null) {
-          _link(block, node.nodes, childDirectivePositions, childInjector);
+          _link(view, node.nodes, childDirectivePositions, childInjector);
         }
 
         if (fakeParent) {
@@ -92,11 +92,11 @@ class ViewFactory {
     }
   }
 
-  Injector _instantiateDirectives(View block, Injector parentInjector,
+  Injector _instantiateDirectives(View view, Injector parentInjector,
                                   dom.Node node, List<DirectiveRef> directiveRefs,
                                   Parser parser) {
     var timerId;
-    assert((timerId = _perf.startTimer('ng.block.link.setUp', _html(node))) != false);
+    assert((timerId = _perf.startTimer('ng.view.link.setUp', _html(node))) != false);
     Injector nodeInjector;
     Scope scope = parentInjector.get(Scope);
     FilterMap filters = parentInjector.get(FilterMap);
@@ -107,12 +107,12 @@ class ViewFactory {
     try {
       if (directiveRefs == null || directiveRefs.length == 0) return parentInjector;
       var nodeModule = new Module();
-      var blockHoleFactory = (_) => null;
-      var blockFactory = (_) => null;
+      var viewHoleFactory = (_) => null;
+      var viewFactory = (_) => null;
       var boundViewFactory = (_) => null;
       var nodesAttrsDirectives = null;
 
-      nodeModule.value(View, block);
+      nodeModule.value(View, view);
       nodeModule.value(dom.Element, node);
       nodeModule.value(dom.Node, node);
       nodeModule.value(NodeAttrs, nodeAttrs);
@@ -153,7 +153,7 @@ class ViewFactory {
           nodeModule.factory(ref.type, (Injector injector) {
             Compiler compiler = injector.get(Compiler);
             Scope scope = injector.get(Scope);
-            ViewCache blockCache = injector.get(ViewCache);
+            ViewCache viewCache = injector.get(ViewCache);
             Http http = injector.get(Http);
             TemplateCache templateCache = injector.get(TemplateCache);
             DirectiveMap directives = injector.get(DirectiveMap);
@@ -163,7 +163,7 @@ class ViewFactory {
                 injector.get(dom.NodeTreeSanitizer), _expando);
             if (fctrs == null) fctrs = new Map<Type, _ComponentFactory>();
             fctrs[ref.type] = componentFactory;
-            return componentFactory.call(injector, compiler, scope, blockCache, http, templateCache, directives);
+            return componentFactory.call(injector, compiler, scope, viewCache, http, templateCache, directives);
           }, visibility: visibility);
         } else {
           nodeModule.type(ref.type, visibility: visibility);
@@ -174,14 +174,14 @@ class ViewFactory {
         if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
           // Currently, transclude is only supported for NgDirective.
           assert(annotation is NgDirective);
-          blockHoleFactory = (_) => new ViewPort([node]);
-          blockFactory = (_) => ref.blockFactory;
-          boundViewFactory = (Injector injector) => ref.blockFactory.bind(injector);
+          viewHoleFactory = (_) => new ViewPort([node]);
+          viewFactory = (_) => ref.viewFactory;
+          boundViewFactory = (Injector injector) => ref.viewFactory.bind(injector);
         }
       });
       nodeModule
-          ..factory(ViewPort, blockHoleFactory)
-          ..factory(ViewFactory, blockFactory)
+          ..factory(ViewPort, viewHoleFactory)
+          ..factory(ViewFactory, viewFactory)
           ..factory(BoundViewFactory, boundViewFactory)
           ..factory(ElementProbe, (_) => probe);
       nodeInjector = parentInjector.createChild([nodeModule]);
@@ -194,10 +194,10 @@ class ViewFactory {
       var linkTimer;
       try {
         var linkMapTimer;
-        assert((linkTimer = _perf.startTimer('ng.block.link', ref.type)) != false);
+        assert((linkTimer = _perf.startTimer('ng.view.link', ref.type)) != false);
         var controller = nodeInjector.get(ref.type);
         probe.directives.add(controller);
-        assert((linkMapTimer = _perf.startTimer('ng.block.link.map', ref.type)) != false);
+        assert((linkMapTimer = _perf.startTimer('ng.view.link.map', ref.type)) != false);
         var shadowScope = (fctrs != null && fctrs.containsKey(ref.type)) ? fctrs[ref.type].shadowScope : null;
         if (ref.annotation is NgController) {
           scope.context[(ref.annotation as NgController).publishAs] = controller;
@@ -277,8 +277,8 @@ class ViewFactory {
  */
 @NgInjectableService()
 class ViewCache {
-  // _blockFactoryCache is unbounded
-  Cache<String, ViewFactory> _blockFactoryCache =
+  // _viewFactoryCache is unbounded
+  Cache<String, ViewFactory> _viewFactoryCache =
       new LruCache<String, ViewFactory>(capacity: 0);
 
   Http $http;
@@ -292,14 +292,14 @@ class ViewCache {
   ViewCache(this.$http, this.$templateCache, this.compiler, this.treeSanitizer);
 
   ViewFactory fromHtml(String html, DirectiveMap directives) {
-    ViewFactory blockFactory = _blockFactoryCache.get(html);
-    if (blockFactory == null) {
+    ViewFactory viewFactory = _viewFactoryCache.get(html);
+    if (viewFactory == null) {
       var div = new dom.Element.tag('div');
       div.setInnerHtml(html, treeSanitizer: treeSanitizer);
-      blockFactory = compiler(div.nodes, directives);
-      _blockFactoryCache.put(html, blockFactory);
+      viewFactory = compiler(div.nodes, directives);
+      _viewFactoryCache.put(html, viewFactory);
     }
-    return blockFactory;
+    return viewFactory;
   }
 
   async.Future<ViewFactory> fromUrl(String url, DirectiveMap directives) {
@@ -330,7 +330,7 @@ class _ComponentFactory {
   _ComponentFactory(this.element, this.type, this.component, this.treeSanitizer,
                     this._expando);
 
-  dynamic call(Injector injector, Compiler compiler, Scope scope, ViewCache $blockCache, Http $http, TemplateCache $templateCache, DirectiveMap directives) {
+  dynamic call(Injector injector, Compiler compiler, Scope scope, ViewCache $viewCache, Http $http, TemplateCache $templateCache, DirectiveMap directives) {
     this.compiler = compiler;
     shadowDom = element.createShadowRoot();
     shadowDom.applyAuthorStyles = component.applyAuthorStyles;
@@ -351,21 +351,21 @@ class _ComponentFactory {
     } else {
       cssFutures.add( new async.Future.value(null) );
     }
-    var blockFuture;
+    var viewFuture;
     if (component.template != null) {
-      blockFuture = new async.Future.value($blockCache.fromHtml(component.template, directives));
+      viewFuture = new async.Future.value($viewCache.fromHtml(component.template, directives));
     } else if (component.templateUrl != null) {
-      blockFuture = $blockCache.fromUrl(component.templateUrl, directives);
+      viewFuture = $viewCache.fromUrl(component.templateUrl, directives);
     }
     TemplateLoader templateLoader = new TemplateLoader( async.Future.wait(cssFutures).then((Iterable<String> cssList) {
       if (cssList != null) {
         var filteredCssList = cssList.where((css) => css != null );
         shadowDom.setInnerHtml('<style>${filteredCssList.join('')}</style>', treeSanitizer: treeSanitizer);
       }
-      if (blockFuture != null) {
-        return blockFuture.then((ViewFactory blockFactory) {
+      if (viewFuture != null) {
+        return viewFuture.then((ViewFactory viewFactory) {
           if (!shadowScope.isAttached) return shadowDom;
-          return attachViewToShadowDom(blockFactory);
+          return attachViewToShadowDom(viewFactory);
         });
       }
       return shadowDom;
@@ -380,9 +380,9 @@ class _ComponentFactory {
     return controller;
   }
 
-  attachViewToShadowDom(ViewFactory blockFactory) {
-    var block = blockFactory(shadowInjector);
-    shadowDom.nodes.addAll(block.elements);
+  attachViewToShadowDom(ViewFactory viewFactory) {
+    var view = viewFactory(shadowInjector);
+    shadowDom.nodes.addAll(view.elements);
     return shadowDom;
   }
 

@@ -13,8 +13,8 @@ import 'package:angular/core/parser/parser.dart';
 import 'package:angular/core_dom/dom_util.dart' as util;
 
 part 'animation.dart';
-part 'block.dart';
-part 'block_factory.dart';
+part 'view.dart';
+part 'view_factory.dart';
 part 'cookies.dart';
 part 'common.dart';
 part 'compiler.dart';

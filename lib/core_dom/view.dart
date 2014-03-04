@@ -12,7 +12,7 @@ abstract class ElementWrapper {
 }
 
 /**
- * A View is a fundamental building block of DOM. It is a chunk of DOM which
+ * A View is a fundamental building view of DOM. It is a chunk of DOM which
  * can not be structural changed. It can only have its attributes changed.
  * A View can have [ViewPort]s embedded in its DOM.  A [ViewPort] can
  * contain other [View]s and it is the only way in which DOM can be changed
@@ -98,7 +98,7 @@ class View implements ElementWrapper {
       removeDomElements();
     }
 
-    // Remove block from list
+    // Remove view from list
     if (previous != null && (previous.next = next) != null) {
       next.previous = previous;
     }
@@ -114,12 +114,12 @@ class View implements ElementWrapper {
     
     elements.forEach((el) => parentElement.insertBefore(el, insertBeforeElement));
 
-    // Remove block from list
+    // Remove view from list
     previous.next = next;
     if (next != null) {
       next.previous = previous;
     }
-    // Add block to list
+    // Add view to list
     next = previousView.next;
     if (next != null) {
       next.previous = this;
@@ -133,7 +133,7 @@ class View implements ElementWrapper {
 /**
  * A ViewPort is an instance of a hole. ViewPorts designate where child
  * [View]s can be added in parent [View]. ViewPorts wrap a DOM element,
- * and act as references which allows more blocks to be added.
+ * and act as references which allows more views to be added.
  */
 class ViewPort extends ElementWrapper {
   List<dom.Node> elements;

@@ -61,7 +61,7 @@ part of angular.routing;
     visibility: NgDirective.CHILDREN_VISIBILITY)
 class NgViewDirective implements NgDetachAware, RouteProvider {
   final NgRoutingHelper locationService;
-  final ViewCache blockCache;
+  final ViewCache viewCache;
   final Injector injector;
   final Element element;
   final Scope scope;
@@ -71,7 +71,7 @@ class NgViewDirective implements NgDetachAware, RouteProvider {
   Scope _previousScope;
   Route _viewRoute;
 
-  NgViewDirective(this.element, this.blockCache,
+  NgViewDirective(this.element, this.viewCache,
                   Injector injector, Router router,
                   this.scope)
       : injector = injector,
@@ -114,10 +114,10 @@ class NgViewDirective implements NgDetachAware, RouteProvider {
     }
 
     var newDirectives = viewInjector.get(DirectiveMap);
-    blockCache.fromUrl(templateUrl, newDirectives).then((blockFactory) {
+    viewCache.fromUrl(templateUrl, newDirectives).then((viewFactory) {
       _cleanUp();
       _previousScope = scope.createChild(new PrototypeMap(scope.context));
-      _previousView = blockFactory(
+      _previousView = viewFactory(
           viewInjector.createChild(
               [new Module()..value(Scope, _previousScope)]));
 

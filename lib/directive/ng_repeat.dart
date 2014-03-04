@@ -3,7 +3,7 @@ part of angular.directive;
 class _Row {
   var id;
   Scope scope;
-  View block;
+  View view;
   dom.Element startNode;
   dom.Element endNode;
   List<dom.Element> elements;
@@ -81,13 +81,13 @@ class _Row {
     selector: '[ng-repeat]',
     map: const {'.': '@expression'})
 class NgRepeatDirective extends AbstractNgRepeatDirective {
-  NgRepeatDirective(ViewPort blockHole,
+  NgRepeatDirective(ViewPort viewHole,
                     BoundViewFactory boundViewFactory,
                     Scope scope,
                     Parser parser,
                     AstParser astParser,
                     FilterMap filters)
-      : super(blockHole, boundViewFactory, scope, parser, astParser, filters);
+      : super(viewHole, boundViewFactory, scope, parser, astParser, filters);
 }
 
 /**
@@ -115,13 +115,13 @@ class NgRepeatDirective extends AbstractNgRepeatDirective {
     map: const {'.': '@expression'})
 //TODO(misko): delete me, since we can no longer do shallow digest.
 class NgShallowRepeatDirective extends AbstractNgRepeatDirective {
-  NgShallowRepeatDirective(ViewPort blockHole,
+  NgShallowRepeatDirective(ViewPort viewHole,
                           BoundViewFactory boundViewFactory,
                           Scope scope,
                           Parser parser,
                           AstParser astParser,
                           FilterMap filters)
-      : super(blockHole, boundViewFactory, scope, parser, astParser, filters)
+      : super(viewHole, boundViewFactory, scope, parser, astParser, filters)
   {
     print('DEPRECATED: [ng-shallow-repeat] use [ng-repeat]');
   }
@@ -131,7 +131,7 @@ abstract class AbstractNgRepeatDirective  {
   static RegExp _SYNTAX = new RegExp(r'^\s*(.+)\s+in\s+(.*?)\s*(\s+track\s+by\s+(.+)\s*)?(\s+lazily\s*)?$');
   static RegExp _LHS_SYNTAX = new RegExp(r'^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$');
 
-  final ViewPort _blockHole;
+  final ViewPort _viewHole;
   final BoundViewFactory _boundViewFactory;
   final Scope _scope;
   final Parser _parser;
@@ -147,7 +147,7 @@ abstract class AbstractNgRepeatDirective  {
   Watch _watch = null;
   Iterable _lastCollection;
 
-  AbstractNgRepeatDirective(this._blockHole, this._boundViewFactory,
+  AbstractNgRepeatDirective(this._viewHole, this._boundViewFactory,
                             this._scope, this._parser, this._astParser,
                             this.filters);
 
@@ -224,7 +224,7 @@ abstract class AbstractNgRepeatDirective  {
     }
     // remove existing items
     _rows.forEach((key, row) {
-      row.block.remove();
+      row.view.remove();
       row.scope.destroy();
     });
     _rows = newRows;
@@ -232,12 +232,12 @@ abstract class AbstractNgRepeatDirective  {
   }
 
   _onCollectionChange(Iterable collection) {
-    dom.Node previousNode = _blockHole.elements[0]; // current position of the node
+    dom.Node previousNode = _viewHole.elements[0]; // current position of the node
     dom.Node nextNode;
     Scope childScope;
     Map childContext;
     Scope trackById;
-    ElementWrapper cursor = _blockHole;
+    ElementWrapper cursor = _viewHole;
 
     List<_Row> newRowOrder = _computeNewRows(collection, trackById);
 
@@ -258,7 +258,7 @@ abstract class AbstractNgRepeatDirective  {
 
         if (row.startNode != nextNode) {
           // existing item which got moved
-          row.block.moveAfter(cursor);
+          row.view.moveAfter(cursor);
         }
         previousNode = row.endNode;
       } else {
@@ -280,16 +280,16 @@ abstract class AbstractNgRepeatDirective  {
           ..[r'$even'] = index & 1 == 0;
 
       if (row.startNode == null) {
-        var block = _boundViewFactory(childScope);
+        var view = _boundViewFactory(childScope);
         _rows[row.id] = row
-            ..block = block
+            ..view = view
             ..scope = childScope
-            ..elements = block.elements
+            ..elements = view.elements
             ..startNode = row.elements[0]
             ..endNode = row.elements[row.elements.length - 1];
-        block.insertAfter(cursor);
+        view.insertAfter(cursor);
       }
-      cursor = row.block;
+      cursor = row.view;
     }
   }
 }

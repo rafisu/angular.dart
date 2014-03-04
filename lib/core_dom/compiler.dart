@@ -29,7 +29,7 @@ class Compiler {
       // TODO: move to ElementBinder
       var compileTransclusionCallback = () {
         DirectiveRef directiveRef = declaredElementSelector.template;
-        directiveRef.blockFactory = compileTransclusion(
+        directiveRef.viewFactory = compileTransclusion(
             domCursor, templateCursor,
             directiveRef, declaredElementSelector, directives);
       };
@@ -68,8 +68,8 @@ class Compiler {
                       ElementBinder transcludedElementBinder,
                       DirectiveMap directives) {
     var anchorName = directiveRef.annotation.selector + (directiveRef.value != null ? '=' + directiveRef.value : '');
-    var blockFactory;
-    var blocks;
+    var viewFactory;
+    var views;
 
     var transcludeCursor = templateCursor.replaceWithAnchor(anchorName);
     var domCursorIndex = domCursor.index;
@@ -77,16 +77,16 @@ class Compiler {
         _compileView(domCursor, transcludeCursor, transcludedElementBinder, directives);
     if (directivePositions == null) directivePositions = [];
 
-    blockFactory = new ViewFactory(transcludeCursor.elements, directivePositions, _perf, _expando);
+    viewFactory = new ViewFactory(transcludeCursor.elements, directivePositions, _perf, _expando);
     domCursor.index = domCursorIndex;
 
     if (domCursor.isInstance()) {
       domCursor.insertAnchorBefore(anchorName);
-      blocks = [blockFactory(domCursor.nodeList())];
+      views = [viewFactory(domCursor.nodeList())];
       domCursor.macroNext();
       templateCursor.macroNext();
       while (domCursor.isValid() && domCursor.isInstance()) {
-        blocks.add(blockFactory(domCursor.nodeList()));
+        views.add(viewFactory(domCursor.nodeList()));
         domCursor.macroNext();
         templateCursor.remove();
       }
@@ -94,7 +94,7 @@ class Compiler {
       domCursor.replaceWithAnchor(anchorName);
     }
 
-    return blockFactory;
+    return viewFactory;
   }
 
   ViewFactory call(List<dom.Node> elements, DirectiveMap directives) {
@@ -106,11 +106,11 @@ class Compiler {
         new NodeCursor(domElements), new NodeCursor(templateElements),
         null, directives);
 
-    var blockFactory = new ViewFactory(templateElements,
+    var viewFactory = new ViewFactory(templateElements,
         directivePositions == null ? [] : directivePositions, _perf, _expando);
 
     assert(_perf.stopTimer(timerId) != false);
-    return blockFactory;
+    return viewFactory;
   }
 
 

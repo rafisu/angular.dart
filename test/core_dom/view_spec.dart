@@ -1,4 +1,4 @@
-library block_spec;
+library view_spec;
 
 import '../_specs.dart';
 
@@ -10,15 +10,15 @@ class Log {
 
 @NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo')
 class LoggerViewDirective {
-  LoggerViewDirective(ViewPort hole, ViewFactory blockFactory,
+  LoggerViewDirective(ViewPort hole, ViewFactory viewFactory,
       BoundViewFactory boundViewFactory, Logger logger) {
     assert(hole != null);
-    assert(blockFactory != null);
+    assert(viewFactory != null);
     assert(boundViewFactory != null);
 
     logger.add(hole);
     logger.add(boundViewFactory);
-    logger.add(blockFactory);
+    logger.add(viewFactory);
   }
 }
 
@@ -63,7 +63,7 @@ main() {
   describe('View', () {
     var anchor;
     var $rootElement;
-    var blockCache;
+    var viewCache;
 
     beforeEach(() {
       $rootElement = $('<div></div>');
@@ -82,7 +82,7 @@ main() {
 
 
       describe('insertAfter', () {
-        it('should insert block after anchor block', () {
+        it('should insert view after anchor view', () {
           a.insertAfter(anchor);
 
           expect($rootElement.html()).toEqual('<!-- anchor --><span>A</span>a');
@@ -93,7 +93,7 @@ main() {
         });
 
 
-        it('should insert multi element block after another multi element block', () {
+        it('should insert multi element view after another multi element view', () {
           b.insertAfter(a.insertAfter(anchor));
 
           expect($rootElement.html()).toEqual('<!-- anchor --><span>A</span>a<span>B</span>b');
@@ -106,7 +106,7 @@ main() {
         });
 
 
-        it('should insert multi element block before another multi element block', () {
+        it('should insert multi element view before another multi element view', () {
           b.insertAfter(anchor);
           a.insertAfter(anchor);
 
@@ -128,7 +128,7 @@ main() {
           expect($rootElement.text()).toEqual('AaBb');
         });
 
-        it('should remove the last block', () {
+        it('should remove the last view', () {
           b.remove();
           expect($rootElement.html()).toEqual('<!-- anchor --><span>A</span>a');
           expect(anchor.next).toBe(a);
@@ -139,7 +139,7 @@ main() {
           expect(b.previous).toBe(null);
         });
 
-        it('should remove child blocks from parent pseudo black', () {
+        it('should remove child views from parent pseudo black', () {
           a.remove();
           expect($rootElement.html()).toEqual('<!-- anchor --><span>B</span>b');
           expect(anchor.next).toBe(b);
@@ -165,7 +165,7 @@ main() {
                                               LoggerViewDirective,
                                               new NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo'),
                                               '');
-          directiveRef.blockFactory = new ViewFactory($('<b>text</b>'), [], perf, new Expando());
+          directiveRef.viewFactory = new ViewFactory($('<b>text</b>'), [], perf, new Expando());
           var outerViewType = new ViewFactory(
               $('<!--start--><!--end-->'),
               [ 0, [ directiveRef ], null],
@@ -181,7 +181,7 @@ main() {
           outterView.insertAfter(anchor);
           // outterAnchor is a ViewPort, but it has "elements" set to the 0th element
           // of outerViewType.  So, calling insertAfter() will insert the new
-          // block after the <!--start--> element.
+          // view after the <!--start--> element.
           outterBoundViewFactory(null).insertAfter(outterAnchor);
 
           expect($rootElement.text()).toEqual('text');
@@ -266,7 +266,7 @@ main() {
 
     //TODO: tests for attach/detach
     //TODO: animation/transitions
-    //TODO: tests for re-usability of blocks
+    //TODO: tests for re-usability of views
 
   });
 }

@@ -13,7 +13,7 @@ part of animate_demo;
       <div class="visible-hide" ng-hide="ctrl.visible">
         <p>Hello World. ng-hide will add and remove
           the .ng-hide class from me to show and
-          hide this block of text.</p>
+          hide this view of text.</p>
       </div>
       </div>
     ''',

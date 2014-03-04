@@ -22,14 +22,14 @@ class NgIncludeDirective {
 
   final dom.Element element;
   final Scope scope;
-  final ViewCache blockCache;
+  final ViewCache viewCache;
   final Injector injector;
   final DirectiveMap directives;
 
   View _previousView;
   Scope _previousScope;
 
-  NgIncludeDirective(this.element, this.scope, this.blockCache, this.injector, this.directives);
+  NgIncludeDirective(this.element, this.scope, this.viewCache, this.injector, this.directives);
 
   _cleanUp() {
     if (_previousView == null) return;
@@ -55,7 +55,7 @@ class NgIncludeDirective {
   set url(value) {
     _cleanUp();
     if (value != null && value != '') {
-      blockCache.fromUrl(value, directives).then(_updateContent);
+      viewCache.fromUrl(value, directives).then(_updateContent);
     }
   }
 }
