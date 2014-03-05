@@ -76,14 +76,12 @@ class ElementBinder {
   List<DirectiveRef> walkDOM(Injector injector, dom.Node node, compileTransclusionCallback, compileChildrenCallback) {
     List<DirectiveRef> usableDirectiveRefs;
 
-    if (template != null && !skipTemplate) {
-      DirectiveRef directiveRef = template;
-
-      createMappings(directiveRef);
+    if (template != null) {
+      createMappings(template);
       if (usableDirectiveRefs == null) usableDirectiveRefs = [];
-      usableDirectiveRefs.add(directiveRef);
+      usableDirectiveRefs.add(template);
 
-      compileTransclusionCallback(new ElementBinder.forTransclusion(this));
+      template.viewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
     } else {
       var declaredDirectiveRefs = decoratorsAndComponents;
       for (var j = 0; j < declaredDirectiveRefs.length; j++) {
@@ -95,7 +93,9 @@ class ElementBinder {
         usableDirectiveRefs.add(directiveRef);
       }
 
-      compileChildrenCallback();
+      if (childMode == NgAnnotation.COMPILE_CHILDREN) {
+        childDirectivePositions = compileChildrenCallback();
+      }
     }
 
     return usableDirectiveRefs;
@@ -106,12 +106,11 @@ class ElementBinder {
   var usableDirectiveRefs;
   var childDirectivePositions;
 
-  setTemplateInfo(index, directiveRefs, childPos) {
+  setTemplateInfo(index, directiveRefs) {
     assert(offsetIndex == null); // Only call this once.
 
     offsetIndex = index;
     usableDirectiveRefs = directiveRefs;
-    childDirectivePositions = childPos;
   }
 
   static RegExp _MAPPING = new RegExp(r'^(\@|=\>\!|\=\>|\<\=\>|\&)\s*(.*)$');

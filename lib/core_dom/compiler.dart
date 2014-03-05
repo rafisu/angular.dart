@@ -14,47 +14,45 @@ class Compiler {
     if (domCursor.nodeList().length == 0) return null;
 
     List<ElementBinder> elementBinders = null; // don't pre-create to create sparse tree and prevent GC pressure.
-    var cursorAlreadyAdvanced;
 
     do {
+      var ti = templateCursor.index;
       ElementBinder declaredElementSelector = useExistingElementBinder == null
           ?  directives.selector(domCursor.nodeList()[0])
           : useExistingElementBinder;
 
-      var childDirectivePositions = null;
       List<DirectiveRef> usableDirectiveRefs = null;
-
-      cursorAlreadyAdvanced = false;
 
       // TODO: move to ElementBinder
       var compileTransclusionCallback = (ElementBinder transclusionBinder) {
         DirectiveRef directiveRef = declaredElementSelector.template;
-        directiveRef.viewFactory = compileTransclusion(
+        return compileTransclusion(
             domCursor, templateCursor,
             directiveRef, transclusionBinder, directives);
       };
 
       var compileChildrenCallback = () {
-        if (declaredElementSelector.childMode == NgAnnotation.COMPILE_CHILDREN && domCursor.descend()) {
+        var childDirectivePositions = null;
+        if (domCursor.descend()) {
           templateCursor.descend();
 
           childDirectivePositions =
-          _compileView(domCursor, templateCursor, null, directives);
+            _compileView(domCursor, templateCursor, null, directives);
 
           domCursor.ascend();
           templateCursor.ascend();
         }
+        return childDirectivePositions;
       };
 
       usableDirectiveRefs = declaredElementSelector.walkDOM(null, null, compileTransclusionCallback, compileChildrenCallback);
 
-      if (childDirectivePositions != null || usableDirectiveRefs != null) {
-        if (elementBinders == null) elementBinders = [];
-        var directiveOffsetIndex = templateCursor.index;
+      if (elementBinders == null) elementBinders = [];
+      var directiveOffsetIndex = templateCursor.index;
+      assert(directiveOffsetIndex == ti);
 
-        declaredElementSelector.setTemplateInfo(directiveOffsetIndex, usableDirectiveRefs, childDirectivePositions);
-        elementBinders.add(declaredElementSelector);
-      }
+      declaredElementSelector.setTemplateInfo(directiveOffsetIndex, usableDirectiveRefs);
+      elementBinders.add(declaredElementSelector);
     } while (templateCursor.microNext() && domCursor.microNext());
 
     return elementBinders;
