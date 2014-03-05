@@ -16,10 +16,11 @@ class Compiler {
     List<ElementBinder> elementBinders = null; // don't pre-create to create sparse tree and prevent GC pressure.
 
     do {
-      var ti = templateCursor.index;
       ElementBinder declaredElementSelector = useExistingElementBinder == null
           ?  directives.selector(domCursor.nodeList()[0])
           : useExistingElementBinder;
+
+      declaredElementSelector.offsetIndex = templateCursor.index;
 
       // TODO: move to ElementBinder
       var compileTransclusionCallback = (ElementBinder transclusionBinder) {
@@ -43,14 +44,13 @@ class Compiler {
         return childDirectivePositions;
       };
 
-      declaredElementSelector.walkDOM(null, null, compileTransclusionCallback, compileChildrenCallback);
+      declaredElementSelector.walkDOM(compileTransclusionCallback, compileChildrenCallback);
 
       if (elementBinders == null) elementBinders = [];
-      var directiveOffsetIndex = templateCursor.index;
-      assert(directiveOffsetIndex == ti);
 
-      declaredElementSelector.setTemplateInfo(directiveOffsetIndex);
-      elementBinders.add(declaredElementSelector);
+      if (declaredElementSelector.isUseful()) {
+        elementBinders.add(declaredElementSelector);
+      }
     } while (templateCursor.microNext() && domCursor.microNext());
 
     return elementBinders;

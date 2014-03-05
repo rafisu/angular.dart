@@ -6,7 +6,7 @@ class ElementBinderFactory {
 
   ElementBinderFactory(Parser this._parser);
 
-  binder() {
+  binder([int templateIndex]) {
     return new ElementBinder(_parser);
   }
 }
@@ -26,7 +26,6 @@ class ElementBinder {
     decorators = other.decorators;
     component = other.component;
     childMode = other.childMode;
-    offsetIndex = other.offsetIndex;
     childDirectivePositions = other.childDirectivePositions;
   }
 
@@ -62,19 +61,19 @@ class ElementBinder {
     if (annotation.children == NgAnnotation.IGNORE_CHILDREN) {
       childMode = annotation.children;
     }
+
+    createMappings(ref);
   }
 
   // TODO: Move most of this into "addDirective"
-  List<DirectiveRef> walkDOM(Injector injector, dom.Node node, compileTransclusionCallback, compileChildrenCallback) {
+  List<DirectiveRef> walkDOM(compileTransclusionCallback, compileChildrenCallback) {
     if (template != null) {
-      createMappings(template);
       template.viewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
     } else {
       var declaredDirectiveRefs = decoratorsAndComponents;
       for (var j = 0; j < declaredDirectiveRefs.length; j++) {
         DirectiveRef directiveRef = declaredDirectiveRefs[j];
         NgAnnotation annotation = directiveRef.annotation;
-        createMappings(directiveRef);
       }
 
       if (childMode == NgAnnotation.COMPILE_CHILDREN) {
@@ -93,14 +92,13 @@ class ElementBinder {
   }
   var childDirectivePositions;
 
-  setTemplateInfo(index) {
-    assert(offsetIndex == null); // Only call this once.
-
-    offsetIndex = index;
+  bool isUseful() {
+    return (usableDirectiveRefs != null && usableDirectiveRefs.length != 0) || childDirectivePositions != null;
   }
 
   static RegExp _MAPPING = new RegExp(r'^(\@|=\>\!|\=\>|\<\=\>|\&)\s*(.*)$');
 
+  // TODO: Move this into the Selector
   createMappings(DirectiveRef ref) {
     NgAnnotation annotation = ref.annotation;
     if (annotation.map != null) annotation.map.forEach((attrName, mapping) {
