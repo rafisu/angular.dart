@@ -3,10 +3,9 @@ part of angular.core.dom;
 @NgInjectableService()
 class Compiler {
   final Profiler _perf;
-  final Parser _parser;
   final Expando _expando;
 
-  Compiler(this._perf, this._parser, this._expando);
+  Compiler(this._perf, this._expando);
 
   List<ElementBinder> _compileView(NodeCursor domCursor, NodeCursor templateCursor,
                 ElementBinder useExistingElementBinder,
@@ -22,12 +21,10 @@ class Compiler {
 
       declaredElementSelector.offsetIndex = templateCursor.index;
 
-      // TODO: move to ElementBinder
       var compileTransclusionCallback = (ElementBinder transclusionBinder) {
-        DirectiveRef directiveRef = declaredElementSelector.template;
         return compileTransclusion(
             domCursor, templateCursor,
-            directiveRef, transclusionBinder, directives);
+            declaredElementSelector.template, transclusionBinder, directives);
       };
 
       var compileChildrenCallback = () {
@@ -46,9 +43,8 @@ class Compiler {
 
       declaredElementSelector.walkDOM(compileTransclusionCallback, compileChildrenCallback);
 
-      if (elementBinders == null) elementBinders = [];
-
       if (declaredElementSelector.isUseful()) {
+        if (elementBinders == null) elementBinders = [];
         elementBinders.add(declaredElementSelector);
       }
     } while (templateCursor.microNext() && domCursor.microNext());
@@ -106,8 +102,4 @@ class Compiler {
     assert(_perf.stopTimer(timerId) != false);
     return viewFactory;
   }
-
-
-
 }
-

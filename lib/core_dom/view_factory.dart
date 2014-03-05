@@ -61,7 +61,7 @@ class ViewFactory {
       var eb = elementBinders[i];
       int index = eb.offsetIndex;
 
-      List childDirectivePositions = eb.childDirectivePositions;
+      List childElementBinders = eb.childElementBinders;
       int nodeListIndex = index + preRenderedIndexOffset;
       dom.Node node = nodeList[nodeListIndex];
 
@@ -80,8 +80,8 @@ class ViewFactory {
         var childInjector = _instantiateDirectives(view, parentInjector, node,
             eb, parentInjector.get(Parser));
 
-        if (childDirectivePositions != null) {
-          _link(view, node.nodes, childDirectivePositions, childInjector);
+        if (childElementBinders != null) {
+          _link(view, node.nodes, childElementBinders, childInjector);
         }
 
         if (fakeParent) {

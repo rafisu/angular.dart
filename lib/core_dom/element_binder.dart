@@ -26,7 +26,7 @@ class ElementBinder {
     decorators = other.decorators;
     component = other.component;
     childMode = other.childMode;
-    childDirectivePositions = other.childDirectivePositions;
+    childElementBinders = other.childElementBinders;
   }
 
   List<DirectiveRef> decorators = [];
@@ -35,16 +35,12 @@ class ElementBinder {
 
   DirectiveRef component;
 
+  var childElementBinders;
+
+  var offsetIndex;
+
   // Can be either COMPILE_CHILDREN or IGNORE_CHILDREN
   String childMode = NgAnnotation.COMPILE_CHILDREN;
-
-  // TODO: This won't be part of the public API.
-  List<DirectiveRef> get decoratorsAndComponents {
-    if (component != null) {
-      return new List.from(decorators)..add(component);
-    }
-    return decorators;
-  }
 
   addDirective(DirectiveRef ref) {
     var annotation = ref.annotation;
@@ -65,35 +61,27 @@ class ElementBinder {
     createMappings(ref);
   }
 
-  // TODO: Move most of this into "addDirective"
   List<DirectiveRef> walkDOM(compileTransclusionCallback, compileChildrenCallback) {
     if (template != null) {
       template.viewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
-    } else {
-      var declaredDirectiveRefs = decoratorsAndComponents;
-      for (var j = 0; j < declaredDirectiveRefs.length; j++) {
-        DirectiveRef directiveRef = declaredDirectiveRefs[j];
-        NgAnnotation annotation = directiveRef.annotation;
-      }
-
-      if (childMode == NgAnnotation.COMPILE_CHILDREN) {
-        childDirectivePositions = compileChildrenCallback();
-      }
+    } else if (childMode == NgAnnotation.COMPILE_CHILDREN) {
+        childElementBinders = compileChildrenCallback();
     }
   }
 
-  // TODO: Now set in the compiler, we should be able to move them elsewhere.
-  var offsetIndex;
-  List get usableDirectiveRefs {
+  List<DirectiveRef> get usableDirectiveRefs {
     if (template != null) {
       return [template];
     }
-    return decoratorsAndComponents;
+    if (component != null) {
+      return new List.from(decorators)..add(component);
+    }
+    return decorators;
   }
-  var childDirectivePositions;
+
 
   bool isUseful() {
-    return (usableDirectiveRefs != null && usableDirectiveRefs.length != 0) || childDirectivePositions != null;
+    return (usableDirectiveRefs != null && usableDirectiveRefs.length != 0) || childElementBinders != null;
   }
 
   static RegExp _MAPPING = new RegExp(r'^(\@|=\>\!|\=\>|\<\=\>|\&)\s*(.*)$');
