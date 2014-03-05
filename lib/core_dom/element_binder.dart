@@ -21,6 +21,18 @@ class ElementBinder {
 
   ElementBinder(this._parser);
 
+  ElementBinder.forTransclusion(ElementBinder other) {
+    skipTemplate = true;
+
+    _parser = other._parser;
+    decorators = other.decorators;
+    component = other.component;
+    childMode = other.childMode;
+    offsetIndex = other.offsetIndex;
+    usableDirectiveRefs = other.usableDirectiveRefs;
+    childDirectivePositions = other.childDirectivePositions;
+  }
+
   List<DirectiveRef> decorators = [];
 
   /**
@@ -60,7 +72,8 @@ class ElementBinder {
     }
   }
 
-  List<DirectiveRef> bind(Injector injector, dom.Node node, compileTransclusionCallback, compileChildrenCallback) {
+  // TODO: Move most of this into "addDirective"
+  List<DirectiveRef> walkDOM(Injector injector, dom.Node node, compileTransclusionCallback, compileChildrenCallback) {
     List<DirectiveRef> usableDirectiveRefs;
 
     if (template != null && !skipTemplate) {
@@ -70,8 +83,7 @@ class ElementBinder {
       if (usableDirectiveRefs == null) usableDirectiveRefs = [];
       usableDirectiveRefs.add(directiveRef);
 
-      skipTemplate = true;
-      compileTransclusionCallback();
+      compileTransclusionCallback(new ElementBinder.forTransclusion(this));
     } else {
       var declaredDirectiveRefs = decoratorsAndComponents;
       for (var j = 0; j < declaredDirectiveRefs.length; j++) {
@@ -87,6 +99,19 @@ class ElementBinder {
     }
 
     return usableDirectiveRefs;
+  }
+
+  // TODO: Now set in the compiler, we should be able to move them elsewhere.
+  var offsetIndex;
+  var usableDirectiveRefs;
+  var childDirectivePositions;
+
+  setTemplateInfo(index, directiveRefs, childPos) {
+    assert(offsetIndex == null); // Only call this once.
+
+    offsetIndex = index;
+    usableDirectiveRefs = directiveRefs;
+    childDirectivePositions = childPos;
   }
 
   static RegExp _MAPPING = new RegExp(r'^(\@|=\>\!|\=\>|\<\=\>|\&)\s*(.*)$');

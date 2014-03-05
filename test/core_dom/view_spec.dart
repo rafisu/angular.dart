@@ -150,7 +150,7 @@ main() {
           expect(b.previous).toBe(anchor);
         });
 
-        it('should remove', inject((Logger logger, Injector injector, Profiler perf) {
+        it('should remove', inject((Logger logger, Injector injector, Profiler perf, ElementBinderFactory ebf) {
           a.remove();
           b.remove();
 
@@ -166,9 +166,11 @@ main() {
                                               new NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo'),
                                               '');
           directiveRef.viewFactory = new ViewFactory($('<b>text</b>'), [], perf, new Expando());
+          var binder = ebf.binder();
+          binder.setTemplateInfo(0, [ directiveRef ], null);
           var outerViewType = new ViewFactory(
               $('<!--start--><!--end-->'),
-              [ 0, [ directiveRef ], null],
+              [binder],
               perf,
               new Expando());
 

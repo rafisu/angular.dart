@@ -8,12 +8,12 @@ class Compiler {
 
   Compiler(this._perf, this._parser, this._expando);
 
-  _compileView(NodeCursor domCursor, NodeCursor templateCursor,
+  List<ElementBinder> _compileView(NodeCursor domCursor, NodeCursor templateCursor,
                 ElementBinder useExistingElementBinder,
                 DirectiveMap directives) {
     if (domCursor.nodeList().length == 0) return null;
 
-    var directivePositions = null; // don't pre-create to create sparse tree and prevent GC pressure.
+    List<ElementBinder> elementBinders = null; // don't pre-create to create sparse tree and prevent GC pressure.
     var cursorAlreadyAdvanced;
 
     do {
@@ -27,11 +27,11 @@ class Compiler {
       cursorAlreadyAdvanced = false;
 
       // TODO: move to ElementBinder
-      var compileTransclusionCallback = () {
+      var compileTransclusionCallback = (ElementBinder transclusionBinder) {
         DirectiveRef directiveRef = declaredElementSelector.template;
         directiveRef.viewFactory = compileTransclusion(
             domCursor, templateCursor,
-            directiveRef, declaredElementSelector, directives);
+            directiveRef, transclusionBinder, directives);
       };
 
       var compileChildrenCallback = () {
@@ -46,20 +46,18 @@ class Compiler {
         }
       };
 
-      usableDirectiveRefs = declaredElementSelector.bind(null, null, compileTransclusionCallback, compileChildrenCallback);
+      usableDirectiveRefs = declaredElementSelector.walkDOM(null, null, compileTransclusionCallback, compileChildrenCallback);
 
       if (childDirectivePositions != null || usableDirectiveRefs != null) {
-        if (directivePositions == null) directivePositions = [];
+        if (elementBinders == null) elementBinders = [];
         var directiveOffsetIndex = templateCursor.index;
 
-        directivePositions
-            ..add(directiveOffsetIndex)
-            ..add(usableDirectiveRefs)
-            ..add(childDirectivePositions);
+        declaredElementSelector.setTemplateInfo(directiveOffsetIndex, usableDirectiveRefs, childDirectivePositions);
+        elementBinders.add(declaredElementSelector);
       }
     } while (templateCursor.microNext() && domCursor.microNext());
 
-    return directivePositions;
+    return elementBinders;
   }
 
   ViewFactory compileTransclusion(
@@ -102,12 +100,12 @@ class Compiler {
     assert((timerId = _perf.startTimer('ng.compile', _html(elements))) != false);
     List<dom.Node> domElements = elements;
     List<dom.Node> templateElements = cloneElements(domElements);
-    var directivePositions = _compileView(
+    var elementBinders = _compileView(
         new NodeCursor(domElements), new NodeCursor(templateElements),
         null, directives);
 
     var viewFactory = new ViewFactory(templateElements,
-        directivePositions == null ? [] : directivePositions, _perf, _expando);
+        elementBinders == null ? [] : elementBinders, _perf, _expando);
 
     assert(_perf.stopTimer(timerId) != false);
     return viewFactory;
