@@ -21,8 +21,6 @@ class Compiler {
           ?  directives.selector(domCursor.nodeList()[0])
           : useExistingElementBinder;
 
-      List<DirectiveRef> usableDirectiveRefs = null;
-
       // TODO: move to ElementBinder
       var compileTransclusionCallback = (ElementBinder transclusionBinder) {
         DirectiveRef directiveRef = declaredElementSelector.template;
@@ -45,13 +43,13 @@ class Compiler {
         return childDirectivePositions;
       };
 
-      usableDirectiveRefs = declaredElementSelector.walkDOM(null, null, compileTransclusionCallback, compileChildrenCallback);
+      declaredElementSelector.walkDOM(null, null, compileTransclusionCallback, compileChildrenCallback);
 
       if (elementBinders == null) elementBinders = [];
       var directiveOffsetIndex = templateCursor.index;
       assert(directiveOffsetIndex == ti);
 
-      declaredElementSelector.setTemplateInfo(directiveOffsetIndex, usableDirectiveRefs);
+      declaredElementSelector.setTemplateInfo(directiveOffsetIndex);
       elementBinders.add(declaredElementSelector);
     } while (templateCursor.microNext() && domCursor.microNext());
 

@@ -27,7 +27,6 @@ class ElementBinder {
     component = other.component;
     childMode = other.childMode;
     offsetIndex = other.offsetIndex;
-    usableDirectiveRefs = other.usableDirectiveRefs;
     childDirectivePositions = other.childDirectivePositions;
   }
 
@@ -67,43 +66,37 @@ class ElementBinder {
 
   // TODO: Move most of this into "addDirective"
   List<DirectiveRef> walkDOM(Injector injector, dom.Node node, compileTransclusionCallback, compileChildrenCallback) {
-    List<DirectiveRef> usableDirectiveRefs;
-
     if (template != null) {
       createMappings(template);
-      if (usableDirectiveRefs == null) usableDirectiveRefs = [];
-      usableDirectiveRefs.add(template);
-
       template.viewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
     } else {
       var declaredDirectiveRefs = decoratorsAndComponents;
       for (var j = 0; j < declaredDirectiveRefs.length; j++) {
         DirectiveRef directiveRef = declaredDirectiveRefs[j];
         NgAnnotation annotation = directiveRef.annotation;
-
         createMappings(directiveRef);
-        if (usableDirectiveRefs == null) usableDirectiveRefs = [];
-        usableDirectiveRefs.add(directiveRef);
       }
 
       if (childMode == NgAnnotation.COMPILE_CHILDREN) {
         childDirectivePositions = compileChildrenCallback();
       }
     }
-
-    return usableDirectiveRefs;
   }
 
   // TODO: Now set in the compiler, we should be able to move them elsewhere.
   var offsetIndex;
-  var usableDirectiveRefs;
+  List get usableDirectiveRefs {
+    if (template != null) {
+      return [template];
+    }
+    return decoratorsAndComponents;
+  }
   var childDirectivePositions;
 
-  setTemplateInfo(index, directiveRefs) {
+  setTemplateInfo(index) {
     assert(offsetIndex == null); // Only call this once.
 
     offsetIndex = index;
-    usableDirectiveRefs = directiveRefs;
   }
 
   static RegExp _MAPPING = new RegExp(r'^(\@|=\>\!|\=\>|\<\=\>|\&)\s*(.*)$');
