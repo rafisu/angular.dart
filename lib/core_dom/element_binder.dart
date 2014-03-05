@@ -22,8 +22,6 @@ class ElementBinder {
   ElementBinder(this._parser);
 
   ElementBinder.forTransclusion(ElementBinder other) {
-    skipTemplate = true;
-
     _parser = other._parser;
     decorators = other.decorators;
     component = other.component;
@@ -34,11 +32,6 @@ class ElementBinder {
   }
 
   List<DirectiveRef> decorators = [];
-
-  /**
-   * TODO: Make this member private.
-   */
-  bool skipTemplate = false;
 
   DirectiveRef template;
 
