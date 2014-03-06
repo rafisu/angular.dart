@@ -8,7 +8,7 @@ class ElementBinderFactory {
 
   ElementBinderFactory(this._parser, this._perf, this._expando);
 
-  binder([int templateIndex]) {
+  binder() {
     return new ElementBinder(_parser, _perf, _expando);
   }
 }
@@ -19,9 +19,23 @@ class ElementBinderFactory {
  */
 
 class ElementBinder {
+  // DI Services
   Parser _parser;
   Profiler _perf;
   Expando _expando;
+
+  // Member fields
+  List<DirectiveRef> decorators = [];
+  DirectiveRef template;
+  ViewFactory templateViewFactory;
+
+  DirectiveRef component;
+  var childElementBinders;
+  var offsetIndex;
+
+  // Can be either COMPILE_CHILDREN or IGNORE_CHILDREN
+  String childMode = NgAnnotation.COMPILE_CHILDREN;
+
 
   ElementBinder(this._parser, this._perf, this._expando);
 
@@ -32,23 +46,10 @@ class ElementBinder {
 
     decorators = other.decorators;
     component = other.component;
-    childMode = other.childMode;
     childElementBinders = other.childElementBinders;
+    offsetIndex = other.offsetIndex;
+    childMode = other.childMode;
   }
-
-  List<DirectiveRef> decorators = [];
-
-  DirectiveRef template;
-  ViewFactory templateViewFactory;
-
-  DirectiveRef component;
-
-  var childElementBinders;
-
-  var offsetIndex;
-
-  // Can be either COMPILE_CHILDREN or IGNORE_CHILDREN
-  String childMode = NgAnnotation.COMPILE_CHILDREN;
 
   addDirective(DirectiveRef ref) {
     var annotation = ref.annotation;
@@ -69,12 +70,16 @@ class ElementBinder {
     createMappings(ref);
   }
 
-  List<DirectiveRef> walkDOM(compileTransclusionCallback, compileChildrenCallback) {
-    if (template != null) {
-      templateViewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
-    } else if (childMode == NgAnnotation.COMPILE_CHILDREN) {
-        childElementBinders = compileChildrenCallback();
-    }
+  bool get hasTemplate {
+    return template != null;
+  }
+
+  bool get shouldCompileChildren {
+    return childMode == NgAnnotation.COMPILE_CHILDREN;
+  }
+
+  ElementBinder get templateBinder {
+    return new ElementBinder.forTransclusion(this);
   }
 
   List<DirectiveRef> get usableDirectiveRefs {
@@ -87,12 +92,11 @@ class ElementBinder {
     return decorators;
   }
 
-
-  bool isUseful() {
+  bool get isUseful {
     return (usableDirectiveRefs != null && usableDirectiveRefs.length != 0) || childElementBinders != null;
   }
 
-// DI visibility callback allowing node-local visibility.
+  // DI visibility callback allowing node-local visibility.
 
   static final Function _elementOnly = (Injector requesting, Injector defining) {
     if (requesting.name == _SHADOW) {
@@ -372,5 +376,4 @@ class ElementBinder {
       ref.mappings.add(mappingFn);
     });
   }
-
 }

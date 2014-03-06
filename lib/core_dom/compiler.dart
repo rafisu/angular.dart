@@ -15,37 +15,33 @@ class Compiler {
     List<ElementBinder> elementBinders = null; // don't pre-create to create sparse tree and prevent GC pressure.
 
     do {
-      ElementBinder declaredElementSelector = useExistingElementBinder == null
+      ElementBinder elementBinder = useExistingElementBinder == null
           ?  directives.selector(domCursor.nodeList()[0])
           : useExistingElementBinder;
 
-      declaredElementSelector.offsetIndex = templateCursor.index;
+      elementBinder.offsetIndex = templateCursor.index;
 
-      var compileTransclusionCallback = (ElementBinder transclusionBinder) {
-        return compileTransclusion(
+      if (elementBinder.hasTemplate) {
+        elementBinder.templateViewFactory = compileTransclusion(
             domCursor, templateCursor,
-            declaredElementSelector.template, transclusionBinder, directives);
-      };
+            elementBinder.template, elementBinder.templateBinder, directives);
+      }
 
-      var compileChildrenCallback = () {
-        var childDirectivePositions = null;
+      if (elementBinder.shouldCompileChildren) {
         if (domCursor.descend()) {
           templateCursor.descend();
 
-          childDirectivePositions =
-            _compileView(domCursor, templateCursor, null, directives);
+          elementBinder.childElementBinders =
+              _compileView(domCursor, templateCursor, null, directives);
 
           domCursor.ascend();
           templateCursor.ascend();
         }
-        return childDirectivePositions;
-      };
+      }
 
-      declaredElementSelector.walkDOM(compileTransclusionCallback, compileChildrenCallback);
-
-      if (declaredElementSelector.isUseful()) {
+      if (elementBinder.isUseful) {
         if (elementBinders == null) elementBinders = [];
-        elementBinders.add(declaredElementSelector);
+        elementBinders.add(elementBinder);
       }
     } while (templateCursor.microNext() && domCursor.microNext());
 
@@ -63,11 +59,11 @@ class Compiler {
 
     var transcludeCursor = templateCursor.replaceWithAnchor(anchorName);
     var domCursorIndex = domCursor.index;
-    var directivePositions =
+    var elementBinders =
         _compileView(domCursor, transcludeCursor, transcludedElementBinder, directives);
-    if (directivePositions == null) directivePositions = [];
+    if (elementBinders == null) elementBinders = [];
 
-    viewFactory = new ViewFactory(transcludeCursor.elements, directivePositions, _perf, _expando);
+    viewFactory = new ViewFactory(transcludeCursor.elements, elementBinders, _perf, _expando);
     domCursor.index = domCursorIndex;
 
     if (domCursor.isInstance()) {
