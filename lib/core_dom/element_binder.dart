@@ -82,7 +82,7 @@ class ElementBinder {
     return new ElementBinder.forTransclusion(this);
   }
 
-  List<DirectiveRef> get usableDirectiveRefs {
+  List<DirectiveRef> get _usableDirectiveRefs {
     if (template != null) {
       return [template];
     }
@@ -93,7 +93,7 @@ class ElementBinder {
   }
 
   bool get isUseful {
-    return (usableDirectiveRefs != null && usableDirectiveRefs.length != 0) || childElementBinders != null;
+    return (_usableDirectiveRefs != null && _usableDirectiveRefs.length != 0) || childElementBinders != null;
   }
 
   // DI visibility callback allowing node-local visibility.
@@ -124,7 +124,7 @@ class ElementBinder {
     var nodeAttrs = node is dom.Element ? new NodeAttrs(node) : null;
     ElementProbe probe;
 
-    var directiveRefs = usableDirectiveRefs;
+    var directiveRefs = _usableDirectiveRefs;
     try {
       if (directiveRefs == null || directiveRefs.length == 0) return parentInjector;
       var nodeModule = new Module();
