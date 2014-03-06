@@ -2,12 +2,14 @@ part of angular.core.dom;
 
 @NgInjectableService()
 class ElementBinderFactory {
-  Parser _parser;
+  final Parser _parser;
+  final Profiler _perf;
+  final Expando _expando;
 
-  ElementBinderFactory(Parser this._parser);
+  ElementBinderFactory(this._parser, this._perf, this._expando);
 
   binder([int templateIndex]) {
-    return new ElementBinder(_parser);
+    return new ElementBinder(_parser, _perf, _expando);
   }
 }
 
@@ -18,11 +20,16 @@ class ElementBinderFactory {
 
 class ElementBinder {
   Parser _parser;
+  Profiler _perf;
+  Expando _expando;
 
-  ElementBinder(this._parser);
+  ElementBinder(this._parser, this._perf, this._expando);
 
   ElementBinder.forTransclusion(ElementBinder other) {
     _parser = other._parser;
+    _perf = other._perf;
+    _expando = other._expando;
+
     decorators = other.decorators;
     component = other.component;
     childMode = other.childMode;
@@ -84,8 +91,28 @@ class ElementBinder {
     return (usableDirectiveRefs != null && usableDirectiveRefs.length != 0) || childElementBinders != null;
   }
 
+// DI visibility callback allowing node-local visibility.
 
-  Injector bind(View view, Injector parentInjector, dom.Node node, ElementBinder elementBinder, Parser parser, _perf, _elementOnly, _elementDirectChildren, _expando) {
+  static final Function _elementOnly = (Injector requesting, Injector defining) {
+    if (requesting.name == _SHADOW) {
+      requesting = requesting.parent;
+    }
+    return identical(requesting, defining);
+  };
+
+
+
+// DI visibility callback allowing visibility from direct child into parent.
+
+  static final Function _elementDirectChildren = (Injector requesting, Injector defining) {
+    if (requesting.name == _SHADOW) {
+      requesting = requesting.parent;
+    }
+    return _elementOnly(requesting, defining) || identical(requesting.parent, defining);
+  };
+
+
+  Injector bind(View view, Injector parentInjector, dom.Node node) {
     var timerId;
     assert((timerId = _perf.startTimer('ng.view.link.setUp', _html(node))) != false);
     Injector nodeInjector;
@@ -95,7 +122,7 @@ class ElementBinder {
     var nodeAttrs = node is dom.Element ? new NodeAttrs(node) : null;
     ElementProbe probe;
 
-    var directiveRefs = elementBinder.usableDirectiveRefs;
+    var directiveRefs = usableDirectiveRefs;
     try {
       if (directiveRefs == null || directiveRefs.length == 0) return parentInjector;
       var nodeModule = new Module();
@@ -140,8 +167,8 @@ class ElementBinder {
           }
           nodesAttrsDirectives.add(ref);
         } else if (ref.annotation is NgComponent) {
-//nodeModule.factory(type, new ComponentFactory(node, ref.directive), visibility: visibility);
-// TODO(misko): there should be no need to wrap function like this.
+          //nodeModule.factory(type, new ComponentFactory(node, ref.directive), visibility: visibility);
+          // TODO(misko): there should be no need to wrap function like this.
           nodeModule.factory(ref.type, (Injector injector) {
             Compiler compiler = injector.get(Compiler);
             Scope scope = injector.get(Scope);
@@ -149,7 +176,7 @@ class ElementBinder {
             Http http = injector.get(Http);
             TemplateCache templateCache = injector.get(TemplateCache);
             DirectiveMap directives = injector.get(DirectiveMap);
-// This is a bit of a hack since we are returning different type then we are.
+            // This is a bit of a hack since we are returning different type then we are.
             var componentFactory = new _ComponentFactory(node, ref.type,
             ref.annotation as NgComponent,
             injector.get(dom.NodeTreeSanitizer), _expando);
@@ -164,7 +191,7 @@ class ElementBinder {
           nodeModule.factory(publishType, (Injector injector) => injector.get(ref.type), visibility: visibility);
         }
         if (annotation.children == NgAnnotation.TRANSCLUDE_CHILDREN) {
-// Currently, transclude is only supported for NgDirective.
+          // Currently, transclude is only supported for NgDirective.
           assert(annotation is NgDirective);
           viewPortFactory = (_) => new ViewPort([node]);
           viewFactory = (_) => ref.viewFactory;

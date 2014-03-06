@@ -53,7 +53,7 @@ class ViewFactory {
     }
   }
 
-  _link(View view, List<dom.Node> nodeList, List elementBinders, Injector parentInjector) {
+  View _link(View view, List<dom.Node> nodeList, List elementBinders, Injector parentInjector) {
     var preRenderedIndexOffset = 0;
     var directiveDefsByName = {};
 
@@ -77,8 +77,7 @@ class ViewFactory {
           parentNode.append(node);
         }
 
-        var childInjector = _instantiateDirectives(view, parentInjector, node,
-            eb, parentInjector.get(Parser));
+        var childInjector = eb.bind(view, parentInjector, node);
 
         if (childElementBinders != null) {
           _link(view, node.nodes, childElementBinders, childInjector);
@@ -92,32 +91,8 @@ class ViewFactory {
         assert(_perf.stopTimer(timerId) != false);
       }
     }
+    return view;
   }
-
-  // TODO: This is actually ElementBinder.bind
-  Injector _instantiateDirectives(View view, Injector parentInjector,
-                                  dom.Node node, ElementBinder elementBinder,
-                                  Parser parser) {
-    return elementBinder.bind(view, parentInjector, node, elementBinder, parser, _perf, _elementOnly, _elementDirectChildren, _expando);
-  }
-
-  // DI visibility callback allowing node-local visibility.
-
-  static final Function _elementOnly = (Injector requesting, Injector defining) {
-    if (requesting.name == _SHADOW) {
-      requesting = requesting.parent;
-    }
-    return identical(requesting, defining);
-  };
-
-  // DI visibility callback allowing visibility from direct child into parent.
-
-  static final Function _elementDirectChildren = (Injector requesting, Injector defining) {
-    if (requesting.name == _SHADOW) {
-      requesting = requesting.parent;
-    }
-    return _elementOnly(requesting, defining) || identical(requesting.parent, defining);
-  };
 }
 
 /**

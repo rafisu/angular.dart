@@ -4,7 +4,7 @@ import '../_specs.dart';
 
 
 void main() {
-  ddescribe('dte.compiler', () {
+  describe('dte.compiler', () {
     Compiler $compile;
     DirectiveMap directives;
     Injector injector;
