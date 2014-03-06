@@ -21,17 +21,23 @@ class BoundViewFactory {
   }
 }
 
+abstract class ViewFactory {
+  BoundViewFactory bind(Injector injector);
+
+  View call(Injector injector, [List<dom.Node> elements]);
+}
+
 /**
  * ViewFactory is used to create new [View]s. ViewFactory is created by the
  * [Compiler] as a result of compiling a template.
  */
-class ViewFactory {
+class WalkingViewFactory implements ViewFactory {
   final List<ElementBinderTreeRef> elementBinders;
   final List<dom.Node> templateElements;
   final Profiler _perf;
   final Expando _expando;
 
-  ViewFactory(this.templateElements, this.elementBinders, this._perf, this._expando) {
+  WalkingViewFactory(this.templateElements, this.elementBinders, this._perf, this._expando) {
     assert(elementBinders.forEach((ElementBinderTreeRef eb) { assert(eb is ElementBinderTreeRef); }) != true);
   }
 
@@ -66,6 +72,7 @@ class ViewFactory {
       //List childElementBinders = eb.childElementBinders;
       int nodeListIndex = index + preRenderedIndexOffset;
       dom.Node node = nodeList[nodeListIndex];
+      var binder = tree.binder;
 
       var timerId;
       try {
@@ -79,15 +86,15 @@ class ViewFactory {
           parentNode.append(node);
         }
 
-        var childInjector = tree.binder != null ? tree.binder.bind(view, parentInjector, node) : parentInjector;
-
-        if (tree.subtrees != null) {
-          _link(view, node.nodes, tree.subtrees, childInjector);
-        }
+        var childInjector = binder != null ? binder.bind(view, parentInjector, node) : parentInjector;
 
         if (fakeParent) {
           // extract the node from the parentNode.
           nodeList[nodeListIndex] = parentNode.nodes[0];
+        }
+
+        if (tree.subtrees != null) {
+          _link(view, node.nodes, tree.subtrees, childInjector);
         }
       } finally {
         assert(_perf.stopTimer(timerId) != false);

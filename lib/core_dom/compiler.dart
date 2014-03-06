@@ -1,11 +1,15 @@
 part of angular.core.dom;
 
+abstract class Compiler {
+  WalkingViewFactory call(List<dom.Node> elements, DirectiveMap directives);
+}
+
 @NgInjectableService()
-class Compiler {
+class WalkingCompiler implements Compiler {
   final Profiler _perf;
   final Expando _expando;
 
-  Compiler(this._perf, this._expando);
+  WalkingCompiler(this._perf, this._expando);
 
   List<ElementBinderTreeRef> _compileView(NodeCursor domCursor, NodeCursor templateCursor,
                 ElementBinder useExistingElementBinder,
@@ -22,7 +26,7 @@ class Compiler {
           : useExistingElementBinder;
 
       if (elementBinder.hasTemplate) {
-        elementBinder.templateViewFactory = compileTransclusion(
+        elementBinder.templateViewFactory = _compileTransclusion(
             domCursor, templateCursor,
             elementBinder.template, elementBinder.templateBinder, directives);
       }
@@ -50,7 +54,7 @@ class Compiler {
     return elementBinders;
   }
 
-  ViewFactory compileTransclusion(
+  WalkingViewFactory _compileTransclusion(
                       NodeCursor domCursor, NodeCursor templateCursor,
                       DirectiveRef directiveRef,
                       ElementBinder transcludedElementBinder,
@@ -65,7 +69,7 @@ class Compiler {
         _compileView(domCursor, transcludeCursor, transcludedElementBinder, directives);
     if (elementBinders == null) elementBinders = [];
 
-    viewFactory = new ViewFactory(transcludeCursor.elements, elementBinders, _perf, _expando);
+    viewFactory = new WalkingViewFactory(transcludeCursor.elements, elementBinders, _perf, _expando);
     domCursor.index = domCursorIndex;
 
     if (domCursor.isInstance()) {
@@ -85,7 +89,7 @@ class Compiler {
     return viewFactory;
   }
 
-  ViewFactory call(List<dom.Node> elements, DirectiveMap directives) {
+  WalkingViewFactory call(List<dom.Node> elements, DirectiveMap directives) {
     var timerId;
     assert((timerId = _perf.startTimer('ng.compile', _html(elements))) != false);
     List<dom.Node> domElements = elements;
@@ -94,7 +98,7 @@ class Compiler {
         new NodeCursor(domElements), new NodeCursor(templateElements),
         null, directives);
 
-    var viewFactory = new ViewFactory(templateElements,
+    var viewFactory = new WalkingViewFactory(templateElements,
         elementBinders == null ? [] : elementBinders, _perf, _expando);
 
     assert(_perf.stopTimer(timerId) != false);

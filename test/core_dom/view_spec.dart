@@ -60,6 +60,7 @@ class BFilter {
 
 
 main() {
+  var viewFactoryFactory = (a,b,c,d) => new WalkingViewFactory(a,b,c,d);
   describe('View', () {
     var anchor;
     var $rootElement;
@@ -76,8 +77,8 @@ main() {
       beforeEach(inject((Injector injector, Profiler perf) {
         $rootElement.html('<!-- anchor -->');
         anchor = new ViewPort($rootElement.contents().eq(0));
-        a = (new ViewFactory($('<span>A</span>a'), [], perf, expando))(injector);
-        b = (new ViewFactory($('<span>B</span>b'), [], perf, expando))(injector);
+        a = (viewFactoryFactory($('<span>A</span>a'), [], perf, expando))(injector);
+        b = (viewFactoryFactory($('<span>B</span>b'), [], perf, expando))(injector);
       }));
 
 
@@ -165,10 +166,10 @@ main() {
                                               LoggerViewDirective,
                                               new NgDirective(children: NgAnnotation.TRANSCLUDE_CHILDREN, selector: 'foo'),
                                               '');
-          directiveRef.viewFactory = new ViewFactory($('<b>text</b>'), [], perf, new Expando());
+          directiveRef.viewFactory = viewFactoryFactory($('<b>text</b>'), [], perf, new Expando());
           var binder = ebf.binder();
           binder.setTemplateInfo(0, [ directiveRef ]);
-          var outerViewType = new ViewFactory(
+          var outerViewType = viewFactoryFactory(
               $('<!--start--><!--end-->'),
               [binder],
               perf,
