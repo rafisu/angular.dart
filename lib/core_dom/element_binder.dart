@@ -39,6 +39,7 @@ class ElementBinder {
   List<DirectiveRef> decorators = [];
 
   DirectiveRef template;
+  ViewFactory templateViewFactory;
 
   DirectiveRef component;
 
@@ -70,7 +71,7 @@ class ElementBinder {
 
   List<DirectiveRef> walkDOM(compileTransclusionCallback, compileChildrenCallback) {
     if (template != null) {
-      template.viewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
+      templateViewFactory = compileTransclusionCallback(new ElementBinder.forTransclusion(this));
     } else if (childMode == NgAnnotation.COMPILE_CHILDREN) {
         childElementBinders = compileChildrenCallback();
     }
@@ -100,9 +101,7 @@ class ElementBinder {
     return identical(requesting, defining);
   };
 
-
-
-// DI visibility callback allowing visibility from direct child into parent.
+  // DI visibility callback allowing visibility from direct child into parent.
 
   static final Function _elementDirectChildren = (Injector requesting, Injector defining) {
     if (requesting.name == _SHADOW) {
@@ -110,7 +109,6 @@ class ElementBinder {
     }
     return _elementOnly(requesting, defining) || identical(requesting.parent, defining);
   };
-
 
   Injector bind(View view, Injector parentInjector, dom.Node node) {
     var timerId;
@@ -194,8 +192,8 @@ class ElementBinder {
           // Currently, transclude is only supported for NgDirective.
           assert(annotation is NgDirective);
           viewPortFactory = (_) => new ViewPort([node]);
-          viewFactory = (_) => ref.viewFactory;
-          boundViewFactory = (Injector injector) => ref.viewFactory.bind(injector);
+          viewFactory = (_) => templateViewFactory;
+          boundViewFactory = (Injector injector) => templateViewFactory.bind(injector);
         }
       });
       nodeModule
