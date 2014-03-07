@@ -18,7 +18,7 @@ class WalkingCompiler implements Compiler {
       var subtrees, binder;
 
       ElementBinder elementBinder = useExistingElementBinder == null
-      ?  directives.selector(domCursor.nodeList()[0])
+      ?  directives.selector.match(domCursor.nodeList()[0])
       : useExistingElementBinder;
 
       if (elementBinder.hasTemplate) {
