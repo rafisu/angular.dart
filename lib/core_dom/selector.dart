@@ -269,87 +269,97 @@ class DirectiveSelector {
     });
   }
 
-  ElementBinder match(dom.Node node) {
+  ElementBinder matchElement(dom.Node node) {
+    assert(node is dom.Element);
+
     ElementBinder binder = _binderFactory.binder();
     List<_ElementSelector> partialSelection;
     var classes = <String, bool>{};
-    var attrs = <String, String>{};
+    Map<String, String> attrs = {};
 
-    switch(node.nodeType) {
-      case 1: // Element
-        dom.Element element = node;
-        String nodeName = element.tagName.toLowerCase();
-        Map<String, String> attrs = {};
+    dom.Element element = node;
+    String nodeName = element.tagName.toLowerCase();
 
-        // Set default attribute
-        if (nodeName == 'input' && !element.attributes.containsKey('type')) {
-          element.attributes['type'] = 'text';
+    // Set default attribute
+    if (nodeName == 'input' && !element.attributes.containsKey('type')) {
+      element.attributes['type'] = 'text';
+    }
+
+    // Select node
+    partialSelection = elementSelector.selectNode(binder,
+    partialSelection, element, nodeName);
+
+    // Select .name
+    if ((element.classes) != null) {
+      for (var name in element.classes) {
+        classes[name] = true;
+        partialSelection = elementSelector.selectClass(binder,
+        partialSelection, element, name);
+      }
+    }
+
+    // Select [attributes]
+    element.attributes.forEach((attrName, value) {
+      attrs[attrName] = value;
+      for (var k = 0; k < attrSelector.length; k++) {
+        _ContainsSelector selectorRegExp = attrSelector[k];
+        if (selectorRegExp.regexp.hasMatch(value)) {
+          // this directive is matched on any attribute name, and so
+          // we need to pass the name to the directive by prefixing it to
+          // the value. Yes it is a bit of a hack.
+          _directives[selectorRegExp.annotation].forEach((type) {
+            binder.addDirective(new DirectiveRef(
+                node, type, selectorRegExp.annotation, '$attrName=$value'));
+          });
         }
+      }
 
-        // Select node
-        partialSelection = elementSelector.selectNode(binder,
-        partialSelection, element, nodeName);
+      partialSelection = elementSelector.selectAttr(binder,
+      partialSelection, node, attrName, value);
+    });
 
-        // Select .name
-        if ((element.classes) != null) {
-          for (var name in element.classes) {
-            classes[name] = true;
-            partialSelection = elementSelector.selectClass(binder,
-            partialSelection, element, name);
-          }
-        }
-
-        // Select [attributes]
-        element.attributes.forEach((attrName, value) {
-          attrs[attrName] = value;
-          for (var k = 0; k < attrSelector.length; k++) {
-            _ContainsSelector selectorRegExp = attrSelector[k];
-            if (selectorRegExp.regexp.hasMatch(value)) {
-              // this directive is matched on any attribute name, and so
-              // we need to pass the name to the directive by prefixing it to
-              // the value. Yes it is a bit of a hack.
-              _directives[selectorRegExp.annotation].forEach((type) {
-                binder.addDirective(new DirectiveRef(
-                    node, type, selectorRegExp.annotation, '$attrName=$value'));
-              });
-            }
-          }
-
+    while(partialSelection != null) {
+      List<_ElementSelector> elementSelectors = partialSelection;
+      partialSelection = null;
+      elementSelectors.forEach((_ElementSelector elementSelector) {
+        classes.forEach((className, _) {
+          partialSelection = elementSelector.selectClass(binder,
+          partialSelection, node, className);
+        });
+        attrs.forEach((attrName, value) {
           partialSelection = elementSelector.selectAttr(binder,
           partialSelection, node, attrName, value);
         });
-
-        while(partialSelection != null) {
-          List<_ElementSelector> elementSelectors = partialSelection;
-          partialSelection = null;
-          elementSelectors.forEach((_ElementSelector elementSelector) {
-            classes.forEach((className, _) {
-              partialSelection = elementSelector.selectClass(binder,
-              partialSelection, node, className);
-            });
-            attrs.forEach((attrName, value) {
-              partialSelection = elementSelector.selectAttr(binder,
-              partialSelection, node, attrName, value);
-            });
-          });
-        }
-        break;
-      case 3: // Text Node
-        var value = node.nodeValue;
-        for (var k = 0; k < textSelector.length; k++) {
-          var selectorRegExp = textSelector[k];
-          if (selectorRegExp.regexp.hasMatch(value)) {
-            _directives[selectorRegExp.annotation].forEach((type) {
-              binder.addDirective(new DirectiveRef(node, type,
-              selectorRegExp.annotation, value));
-            });
-          }
-        }
-        break;
+      });
     }
-
     return binder;
+  }
 
+  ElementBinder matchText(dom.Node node) {
+    ElementBinder binder = _binderFactory.binder();
+
+    var value = node.nodeValue;
+    for (var k = 0; k < textSelector.length; k++) {
+      var selectorRegExp = textSelector[k];
+      if (selectorRegExp.regexp.hasMatch(value)) {
+        _directives[selectorRegExp.annotation].forEach((type) {
+          binder.addDirective(new DirectiveRef(node, type,
+          selectorRegExp.annotation, value));
+        });
+      }
+    }
+    return binder;
+  }
+  ElementBinder match(dom.Node node) {
+    switch(node.nodeType) {
+      case 1: // Element
+        return matchElement(node);
+
+      case 3: // Text Node
+        return matchText(node);
+    }
+    // TODO: This is wrong.
+    return _binderFactory.binder();
   }
 }
 /**
