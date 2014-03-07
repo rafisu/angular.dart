@@ -62,6 +62,8 @@ class NodeCursor {
 
     if (parent != null) {
       parent.insertBefore(anchor, current);
+      // TODO(deboer): This seems like the wrong spot
+      // parent.classes.add('ng-binding');
     }
   }
 
